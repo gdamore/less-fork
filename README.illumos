@@ -1,0 +1,107 @@
+
+I have substantially "ported" less, starting with version 458.  I've made
+changes in the following way:
+
+ * COPYING file removed to and LICENSE file updated reflect that illumos
+   redistributes under the LESS license rather than GPLv3.  (FreeBSD uses
+   a similar precedent.)  Only the first line was added to LICENSE.  All
+   of my changes are distributed exclusively under the LESS License.
+
+ * configure was run to generate the defines.h file, which should be used.
+   The options given were ./configure --prefix=/usr --with-regex=posix
+
+ * lglob() was rewritten to use POSIX glob(3C), instead of using popen()
+   and shell expansion.  (There was at least one minor overrun bug in the
+   existing code -- single byte overrun.)
+
+ * lessecho is removed, since we no longer need it (it was used for the
+   popen() glob hack.  Just calling glob() is *so* much cleaner.
+
+ * calls to tgetstr() were replaced with terminfo tigetstr() (which doesn't
+   require a caller-supplied buffer).  There were bugs here.
+
+ * all of the code supporting non-POSIX systems (OS2, many Microsoft platforms,
+   and OSK) was removed.  This cut huge swathes of code that I couldn't
+   follow.
+ 
+ * all #if 0 stuff is gone.  (Except some of the UTF-8 stuff I wasn't
+   comfortable removing.)
+
+ * code is made C-style and ANSI C conformant.
+
+ * scrsize.c is removed.  It is not used on UNIX systems.
+
+ * SECURE mode (limited features) is removed - this version of less is always
+   fully featured.  (It was a compile-time option.)  Download official less
+   if you need restricted mode. (Hint: zones or chroot are better solutions!)
+
+ *  The following man pages were copied from OpenBSD into
+    usr/src/man/man1:  less.1, lesskey.1, they were subsequently customized
+    for illumos.
+
+ * mkhelp.c was rewhacked to emit more readable fixed strings instead of
+   character arrays.
+
+ * the handling of quit-at-eof was fixed when acting as "more" -- it now
+   properly acts according to the spec -- that is it does automatically
+   trigger -F.  Instead more behaves like less with -e, and when -e is added
+   to more, it behaves like less -E.
+
+ * also, when acting as more, if -e is supplied then we do not init/deinit
+   the terminal, since doing so may cause the use of alternate screens, which
+   is really terrible -- your short file will just go to the alternate screen,
+   and the program will exit back; the user will not actually see any output!
+   arguably this would be a good thing to do for less -E and -F as well.  But
+   most less users probably don't use those options.
+
+ * locale stuff changed to recognize "646" and "C" locales as ASCII.
+
+ * numerous files not needed were removed -- separate regex implementation,
+   pckeys.h, autoconfiguration glue, etc. etc.
+
+ * the behavior of -u when "more" is the same as -U per POSIX
+
+ * when acting as more, we don't warn about dumb ttys (its expected)
+
+ * more -d presents a long prompt, similar to old Solaris, and also disables
+   the bell.
+
+ * more -i acts like less -I -- that is -i is unconditional ignore case
+
+ * more has its own help message
+
+ * options not specifically supported by more are disabled in the command
+   line, and all - and -- options to change flags in the program are
+   disabled when in more mode.
+
+ * more ignores all LESSxxx environment variables
+
+ * in more, "s" skips ahead n lines beyond the end of the window (per POSIX) 
+
+ * LESSBINFMT and LESSUTFBINFMT had crasher bugs due to badly incomplete
+   validation of printf formats.  I've replaced those with a robust and
+   complete specifier checker.  No crasher formats will get through, and
+   it still supports width, precision, flags, etc.
+
+ * both help files contained information that is totally irrelevant for
+   UNIX.  E.g. we have no way to record control-right or control-left -- this
+   information is simply not available in Terminfo.
+
+ * some constructs that alloc then sprintf were replaced with easprintf.
+   This requires vasprintf(), but all modern UNIXes have it. (Even Linux!)
+   This is the only non-POSIX interface consumed that I know of.
+
+---- >> TODO << ----
+
+ 1. it seems silly that less reinvents getopt, consider rewhacking this to
+    use standard getopts; we don't have to worry about supporting MS-DOS.
+
+ 2. The multibyte character handling for unicode is a local hack.  It should
+    just use the current locale, character classification macros, and also
+    the wcwidth(), mbstowcs(), mblen(), and such.  This will make it portable
+    to other encodings than just UTF-8.
+
+ 3. Internationalize the program using gettext().
+
+ 4. Signal handling should be updated to use sigaction.  Also, note that SIGWINCH
+    is not guaranteed to be everwhere.
