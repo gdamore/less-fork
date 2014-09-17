@@ -6,7 +6,10 @@
  *
  * For more information, see the README file.
  */
-
+/*
+ * Modified for use with illumos.
+ * Copyright 2014 Garrett D'Amore <garrett@damore.org>
+ */
 
 /*
  * Low level character input from the input file.
@@ -15,20 +18,15 @@
  */
 
 #include "less.h"
-#if MSDOS_COMPILER==WIN32C
-#include <errno.h>
-#include <windows.h>
-#endif
 
-#if HAVE_STAT_INO
 #include <sys/stat.h>
 extern dev_t curr_dev;
 extern ino_t curr_ino;
-#endif
+extern int less_is_more;
 
 typedef POSITION BLOCKNUM;
 
-public int ignore_eoi;
+int ignore_eoi;
 
 /*
  * Pool of buffers holding the most recently used blocks of the input file.
@@ -48,7 +46,7 @@ struct buf {
 	unsigned int datasize;
 	unsigned char data[LBUFSIZE];
 };
-#define bufnode_buf(bn)  ((struct buf *) bn)
+#define	bufnode_buf(bn)  ((struct buf *)bn)
 
 /*
  * The file state is maintained in a filestate structure.
@@ -79,7 +77,7 @@ struct filestate {
 
 #define	END_OF_CHAIN	(&thisfile->buflist)
 #define	END_OF_HCHAIN(h) (&thisfile->hashtbl[h])
-#define BUFHASH(blk)	((blk) & (BUFHASH_SIZE-1))
+#define	BUFHASH(blk)	((blk) & (BUFHASH_SIZE-1))
 
 /*
  * Macros to manipulate the list of buffers in thisfile->buflist.
@@ -87,17 +85,17 @@ struct filestate {
 #define	FOR_BUFS(bn) \
 	for (bn = ch_bufhead;  bn != END_OF_CHAIN;  bn = bn->next)
 
-#define BUF_RM(bn) \
+#define	BUF_RM(bn) \
 	(bn)->next->prev = (bn)->prev; \
 	(bn)->prev->next = (bn)->next;
 
-#define BUF_INS_HEAD(bn) \
+#define	BUF_INS_HEAD(bn) \
 	(bn)->next = ch_bufhead; \
 	(bn)->prev = END_OF_CHAIN; \
 	ch_bufhead->prev = (bn); \
 	ch_bufhead = (bn);
 
-#define BUF_INS_TAIL(bn) \
+#define	BUF_INS_TAIL(bn) \
 	(bn)->next = END_OF_CHAIN; \
 	(bn)->prev = ch_buftail; \
 	ch_buftail->next = (bn); \
@@ -106,15 +104,15 @@ struct filestate {
 /*
  * Macros to manipulate the list of buffers in thisfile->hashtbl[n].
  */
-#define	FOR_BUFS_IN_CHAIN(h,bn) \
+#define	FOR_BUFS_IN_CHAIN(h, bn) \
 	for (bn = thisfile->hashtbl[h].hnext;  \
-	     bn != END_OF_HCHAIN(h);  bn = bn->hnext)
+	    bn != END_OF_HCHAIN(h);  bn = bn->hnext)
 
 #define	BUF_HASH_RM(bn) \
 	(bn)->hnext->hprev = (bn)->hprev; \
 	(bn)->hprev->hnext = (bn)->hnext;
 
-#define	BUF_HASH_INS(bn,h) \
+#define	BUF_HASH_INS(bn, h) \
 	(bn)->hnext = thisfile->hashtbl[h].hnext; \
 	(bn)->hprev = END_OF_HCHAIN(h); \
 	thisfile->hashtbl[h].hnext->hprev = (bn); \
@@ -129,28 +127,28 @@ extern int sigs;
 extern int secure;
 extern int screen_trashed;
 extern int follow_mode;
-extern constant char helpdata[];
-extern constant int size_helpdata;
+extern const char helpdata[];
+extern const int size_helpdata;
+extern const char morehelpdata[];
+extern const int size_morehelpdata;
 extern IFILE curr_ifile;
-#if LOGFILE
 extern int logfile;
 extern char *namelogfile;
-#endif
 
-static int ch_addbuf();
+static int ch_addbuf(void);
 
 
 /*
  * Get the character pointed to by the read pointer.
  */
-	int
-ch_get()
+int
+ch_get(void)
 {
-	register struct buf *bp;
-	register struct bufnode *bn;
-	register int n;
-	register int slept;
-	register int h;
+	struct buf *bp;
+	struct bufnode *bn;
+	int n;
+	int slept;
+	int h;
 	POSITION pos;
 	POSITION len;
 
@@ -158,14 +156,13 @@ ch_get()
 		return (EOI);
 
 	/*
-	 * Quick check for the common case where 
+	 * Quick check for the common case where
 	 * the desired char is in the head buffer.
 	 */
-	if (ch_bufhead != END_OF_CHAIN)
-	{
+	if (ch_bufhead != END_OF_CHAIN) {
 		bp = bufnode_buf(ch_bufhead);
 		if (ch_block == bp->block && ch_offset < bp->datasize)
-			return bp->data[ch_offset];
+			return (bp->data[ch_offset]);
 	}
 
 	slept = FALSE;
@@ -174,11 +171,9 @@ ch_get()
 	 * Look for a buffer holding the desired block.
 	 */
 	h = BUFHASH(ch_block);
-	FOR_BUFS_IN_CHAIN(h, bn)
-	{
+	FOR_BUFS_IN_CHAIN(h, bn) {
 		bp = bufnode_buf(bn);
-		if (bp->block == ch_block)
-		{
+		if (bp->block == ch_block) {
 			if (ch_offset >= bp->datasize)
 				/*
 				 * Need more data in this buffer.
@@ -187,26 +182,26 @@ ch_get()
 			goto found;
 		}
 	}
-	if (bn == END_OF_HCHAIN(h))
-	{
+	if (bn == END_OF_HCHAIN(h)) {
 		/*
-		 * Block is not in a buffer.  
-		 * Take the least recently used buffer 
+		 * Block is not in a buffer.
+		 * Take the least recently used buffer
 		 * and read the desired block into it.
-		 * If the LRU buffer has data in it, 
+		 * If the LRU buffer has data in it,
 		 * then maybe allocate a new buffer.
 		 */
-		if (ch_buftail == END_OF_CHAIN || 
-			bufnode_buf(ch_buftail)->block != -1)
-		{
+		if (ch_buftail == END_OF_CHAIN ||
+		    bufnode_buf(ch_buftail)->block != -1) {
 			/*
 			 * There is no empty buffer to use.
 			 * Allocate a new buffer if:
-			 * 1. We can't seek on this file and -b is not in effect; or
-			 * 2. We haven't allocated the max buffers for this file yet.
+			 * 1. We can't seek on this file and -b is not in
+			 *    effect; or
+			 * 2. We haven't allocated the max buffers for this
+			 *    file yet.
 			 */
 			if ((autobuf && !(ch_flags & CH_CANSEEK)) ||
-				(maxbufs < 0 || ch_nbufs < maxbufs))
+			    (maxbufs < 0 || ch_nbufs < maxbufs))
 				if (ch_addbuf())
 					/*
 					 * Allocation failed: turn off autobuf.
@@ -221,7 +216,7 @@ ch_get()
 		BUF_HASH_INS(bn, h); /* Insert into new hash chain. */
 	}
 
-    read_more:
+read_more:
 	pos = (ch_block * LBUFSIZE) + bp->datasize;
 	if ((len = ch_length()) != NULL_POSITION && pos >= len)
 		/*
@@ -229,8 +224,7 @@ ch_get()
 		 */
 		return (EOI);
 
-	if (pos != ch_fpos)
-	{
+	if (pos != ch_fpos) {
 		/*
 		 * Not at the correct position: must seek.
 		 * If input is a pipe, we're in trouble (can't seek on a pipe).
@@ -238,56 +232,45 @@ ch_get()
 		 */
 		if (!(ch_flags & CH_CANSEEK))
 			return ('?');
-		if (lseek(ch_file, (off_t)pos, SEEK_SET) == BAD_LSEEK)
-		{
- 			error("seek error", NULL_PARG);
+		if (lseek(ch_file, (off_t)pos, SEEK_SET) == BAD_LSEEK) {
+			error("seek error", NULL_PARG);
 			clear_eol();
 			return (EOI);
- 		}
- 		ch_fpos = pos;
- 	}
+		}
+		ch_fpos = pos;
+	}
 
 	/*
 	 * Read the block.
 	 * If we read less than a full block, that's ok.
 	 * We use partial block and pick up the rest next time.
 	 */
-	if (ch_ungotchar != -1)
-	{
-		bp->data[bp->datasize] = ch_ungotchar;
+	if (ch_ungotchar != -1) {
+		bp->data[bp->datasize] = (unsigned char)ch_ungotchar;
 		n = 1;
 		ch_ungotchar = -1;
-	} else if (ch_flags & CH_HELPFILE)
-	{
-		bp->data[bp->datasize] = helpdata[ch_fpos];
+	} else if (ch_flags & CH_HELPFILE) {
+		bp->data[bp->datasize] = less_is_more ?
+		    morehelpdata[ch_fpos] : helpdata[ch_fpos];
 		n = 1;
-	} else
-	{
-		n = iread(ch_file, &bp->data[bp->datasize], 
-			(unsigned int)(LBUFSIZE - bp->datasize));
+	} else {
+		n = iread(ch_file, &bp->data[bp->datasize],
+		    (unsigned int)(LBUFSIZE - bp->datasize));
 	}
 
 	if (n == READ_INTR)
 		return (EOI);
-	if (n < 0)
-	{
-#if MSDOS_COMPILER==WIN32C
-		if (errno != EPIPE)
-#endif
-		{
-			error("read error", NULL_PARG);
-			clear_eol();
-		}
+	if (n < 0) {
+		error("read error", NULL_PARG);
+		clear_eol();
 		n = 0;
 	}
 
-#if LOGFILE
 	/*
 	 * If we have a log file, write the new data to it.
 	 */
 	if (!secure && logfile >= 0 && n > 0)
-		write(logfile, (char *) &bp->data[bp->datasize], n);
-#endif
+		(void) write(logfile, (char *)&bp->data[bp->datasize], n);
 
 	ch_fpos += n;
 	bp->datasize += n;
@@ -296,56 +279,46 @@ ch_get()
 	 * If we have read to end of file, set ch_fsize to indicate
 	 * the position of the end of file.
 	 */
-	if (n == 0)
-	{
+	if (n == 0) {
 		ch_fsize = pos;
-		if (ignore_eoi)
-		{
+		if (ignore_eoi) {
 			/*
 			 * We are ignoring EOF.
 			 * Wait a while, then try again.
 			 */
-			if (!slept)
-			{
+			if (!slept) {
 				PARG parg;
 				parg.p_string = wait_message();
 				ierror("%s", &parg);
 			}
-#if !MSDOS_COMPILER
-	 		sleep(1);
-#else
-#if MSDOS_COMPILER==WIN32C
-			Sleep(1000);
-#endif
-#endif
+			sleep(1);
 			slept = TRUE;
 
-#if HAVE_STAT_INO
-			if (follow_mode == FOLLOW_NAME)
-			{
-				/* See whether the file's i-number has changed.
+			if (follow_mode == FOLLOW_NAME) {
+				/*
+				 * See whether the file's i-number has changed.
 				 * If so, force the file to be closed and
-				 * reopened. */
+				 * reopened.
+				 */
 				struct stat st;
 				int r = stat(get_filename(curr_ifile), &st);
 				if (r == 0 && (st.st_ino != curr_ino ||
-					st.st_dev != curr_dev))
-				{
-					/* screen_trashed=2 causes
-					 * make_display to reopen the file. */
+				    st.st_dev != curr_dev)) {
+					/*
+					 * screen_trashed=2 causes
+					 * make_display to reopen the file.
+					 */
 					screen_trashed = 2;
 					return (EOI);
 				}
 			}
-#endif
 		}
 		if (sigs)
 			return (EOI);
 	}
 
-    found:
-	if (ch_bufhead != bn)
-	{
+found:
+	if (ch_bufhead != bn) {
 		/*
 		 * Move the buffer to the head of the buffer chain.
 		 * This orders the buffer chain, most- to least-recently used.
@@ -371,32 +344,29 @@ ch_get()
 }
 
 /*
- * ch_ungetchar is a rather kludgy and limited way to push 
+ * ch_ungetchar is a rather kludgy and limited way to push
  * a single char onto an input file descriptor.
  */
-	public void
-ch_ungetchar(c)
-	int c;
+void
+ch_ungetchar(int c)
 {
 	if (c != -1 && ch_ungotchar != -1)
 		error("ch_ungetchar overrun", NULL_PARG);
 	ch_ungotchar = c;
 }
 
-#if LOGFILE
 /*
  * Close the logfile.
  * If we haven't read all of standard input into it, do that now.
  */
-	public void
-end_logfile()
+void
+end_logfile(void)
 {
 	static int tried = FALSE;
 
 	if (logfile < 0)
 		return;
-	if (!tried && ch_fsize == NULL_POSITION)
-	{
+	if (!tried && ch_fsize == NULL_POSITION) {
 		tried = TRUE;
 		ierror("Finishing logfile", NULL_PARG);
 		while (ch_forw_get() != EOI)
@@ -413,54 +383,46 @@ end_logfile()
  * Invoked from the - command; see toggle_option().
  * Write all the existing buffered data to the log file.
  */
-	public void
-sync_logfile()
+void
+sync_logfile(void)
 {
-	register struct buf *bp;
-	register struct bufnode *bn;
+	struct buf *bp;
+	struct bufnode *bn;
 	int warned = FALSE;
 	BLOCKNUM block;
 	BLOCKNUM nblocks;
 
 	nblocks = (ch_fpos + LBUFSIZE - 1) / LBUFSIZE;
-	for (block = 0;  block < nblocks;  block++)
-	{
+	for (block = 0;  block < nblocks;  block++) {
 		int wrote = FALSE;
-		FOR_BUFS(bn)
-		{
+		FOR_BUFS(bn) {
 			bp = bufnode_buf(bn);
-			if (bp->block == block)
-			{
-				write(logfile, (char *) bp->data, bp->datasize);
+			if (bp->block == block) {
+				(void) write(logfile, (char *)bp->data,
+				    bp->datasize);
 				wrote = TRUE;
 				break;
 			}
 		}
-		if (!wrote && !warned)
-		{
-			error("Warning: log file is incomplete",
-				NULL_PARG);
+		if (!wrote && !warned) {
+			error("Warning: log file is incomplete", NULL_PARG);
 			warned = TRUE;
 		}
 	}
 }
 
-#endif
-
 /*
  * Determine if a specific block is currently in one of the buffers.
  */
-	static int
-buffered(block)
-	BLOCKNUM block;
+static int
+buffered(BLOCKNUM block)
 {
 	register struct buf *bp;
 	register struct bufnode *bn;
 	register int h;
 
 	h = BUFHASH(block);
-	FOR_BUFS_IN_CHAIN(h, bn)
-	{
+	FOR_BUFS_IN_CHAIN(h, bn) {
 		bp = bufnode_buf(bn);
 		if (bp->block == block)
 			return (TRUE);
@@ -472,9 +434,8 @@ buffered(block)
  * Seek to a specified position in the file.
  * Return 0 if successful, non-zero if can't seek there.
  */
-	public int
-ch_seek(pos)
-	register POSITION pos;
+int
+ch_seek(POSITION pos)
 {
 	BLOCKNUM new_block;
 	POSITION len;
@@ -487,12 +448,11 @@ ch_seek(pos)
 		return (1);
 
 	new_block = pos / LBUFSIZE;
-	if (!(ch_flags & CH_CANSEEK) && pos != ch_fpos && !buffered(new_block))
-	{
+	if (!(ch_flags & CH_CANSEEK) && pos != ch_fpos &&
+	    !buffered(new_block)) {
 		if (ch_fpos > pos)
 			return (1);
-		while (ch_fpos < pos)
-		{
+		while (ch_fpos < pos) {
 			if (ch_forw_get() == EOI)
 				return (1);
 			if (ABORT_SIGS())
@@ -511,8 +471,8 @@ ch_seek(pos)
 /*
  * Seek to the end of the file.
  */
-	public int
-ch_end_seek()
+int
+ch_end_seek(void)
 {
 	POSITION len;
 
@@ -540,11 +500,11 @@ ch_end_seek()
  * We may not be able to seek there if input is a pipe and the
  * beginning of the pipe is no longer buffered.
  */
-	public int
-ch_beg_seek()
+int
+ch_beg_seek(void)
 {
-	register struct bufnode *bn;
-	register struct bufnode *firstbn;
+	struct bufnode *bn;
+	struct bufnode *firstbn;
 
 	/*
 	 * Try a plain ch_seek first.
@@ -559,8 +519,7 @@ ch_beg_seek()
 	firstbn = ch_bufhead;
 	if (firstbn == END_OF_CHAIN)
 		return (1);
-	FOR_BUFS(bn)
-	{
+	FOR_BUFS(bn) {
 		if (bufnode_buf(bn)->block < bufnode_buf(firstbn)->block)
 			firstbn = bn;
 	}
@@ -572,15 +531,15 @@ ch_beg_seek()
 /*
  * Return the length of the file, if known.
  */
-	public POSITION
-ch_length()
+POSITION
+ch_length(void)
 {
 	if (thisfile == NULL)
 		return (NULL_POSITION);
 	if (ignore_eoi)
 		return (NULL_POSITION);
 	if (ch_flags & CH_HELPFILE)
-		return (size_helpdata);
+		return (less_is_more ? size_morehelpdata : size_helpdata);
 	if (ch_flags & CH_NODATA)
 		return (0);
 	return (ch_fsize);
@@ -589,31 +548,30 @@ ch_length()
 /*
  * Return the current position in the file.
  */
-	public POSITION
-ch_tell()
+POSITION
+ch_tell(void)
 {
 	if (thisfile == NULL)
 		return (NULL_POSITION);
-	return (ch_block * LBUFSIZE) + ch_offset;
+	return ((ch_block * LBUFSIZE) + ch_offset);
 }
 
 /*
  * Get the current char and post-increment the read pointer.
  */
-	public int
-ch_forw_get()
+int
+ch_forw_get(void)
 {
-	register int c;
+	int c;
 
 	if (thisfile == NULL)
 		return (EOI);
 	c = ch_get();
 	if (c == EOI)
 		return (EOI);
-	if (ch_offset < LBUFSIZE-1)
+	if (ch_offset < LBUFSIZE-1) {
 		ch_offset++;
-	else
-	{
+	} else {
 		ch_block ++;
 		ch_offset = 0;
 	}
@@ -623,15 +581,14 @@ ch_forw_get()
 /*
  * Pre-decrement the read pointer and get the new current char.
  */
-	public int
-ch_back_get()
+int
+ch_back_get(void)
 {
 	if (thisfile == NULL)
 		return (EOI);
-	if (ch_offset > 0)
+	if (ch_offset > 0) {
 		ch_offset --;
-	else
-	{
+	} else {
 		if (ch_block <= 0)
 			return (EOI);
 		if (!(ch_flags & CH_CANSEEK) && !buffered(ch_block-1))
@@ -646,14 +603,12 @@ ch_back_get()
  * Set max amount of buffer space.
  * bufspace is in units of 1024 bytes.  -1 mean no limit.
  */
-	public void
-ch_setbufspace(bufspace)
-	int bufspace;
+void
+ch_setbufspace(int bufspace)
 {
-	if (bufspace < 0)
+	if (bufspace < 0) {
 		maxbufs = -1;
-	else
-	{
+	} else {
 		maxbufs = ((bufspace * 1024) + LBUFSIZE-1) / LBUFSIZE;
 		if (maxbufs < 1)
 			maxbufs = 1;
@@ -663,16 +618,15 @@ ch_setbufspace(bufspace)
 /*
  * Flush (discard) any saved file state, including buffer contents.
  */
-	public void
-ch_flush()
+void
+ch_flush(void)
 {
-	register struct bufnode *bn;
+	struct bufnode *bn;
 
 	if (thisfile == NULL)
 		return;
 
-	if (!(ch_flags & CH_CANSEEK))
-	{
+	if (!(ch_flags & CH_CANSEEK)) {
 		/*
 		 * If input is a pipe, we don't flush buffer contents,
 		 * since the contents can't be recovered.
@@ -684,8 +638,7 @@ ch_flush()
 	/*
 	 * Initialize all the buffers.
 	 */
-	FOR_BUFS(bn)
-	{
+	FOR_BUFS(bn) {
 		bufnode_buf(bn)->block = -1;
 	}
 
@@ -704,19 +657,17 @@ ch_flush()
 #if 1
 	/*
 	 * This is a kludge to workaround a Linux kernel bug: files in
-	 * /proc have a size of 0 according to fstat() but have readable 
+	 * /proc have a size of 0 according to fstat() but have readable
 	 * data.  They are sometimes, but not always, seekable.
 	 * Force them to be non-seekable here.
 	 */
-	if (ch_fsize == 0)
-	{
+	if (ch_fsize == 0) {
 		ch_fsize = NULL_POSITION;
 		ch_flags &= ~CH_CANSEEK;
 	}
 #endif
 
-	if (lseek(ch_file, (off_t)0, SEEK_SET) == BAD_LSEEK)
-	{
+	if (lseek(ch_file, (off_t)0, SEEK_SET) == BAD_LSEEK) {
 		/*
 		 * Warning only; even if the seek fails for some reason,
 		 * there's a good chance we're at the beginning anyway.
@@ -730,17 +681,17 @@ ch_flush()
  * Allocate a new buffer.
  * The buffer is added to the tail of the buffer chain.
  */
-	static int
-ch_addbuf()
+static int
+ch_addbuf(void)
 {
-	register struct buf *bp;
-	register struct bufnode *bn;
+	struct buf *bp;
+	struct bufnode *bn;
 
 	/*
-	 * Allocate and initialize a new buffer and link it 
+	 * Allocate and initialize a new buffer and link it
 	 * onto the tail of the buffer list.
 	 */
-	bp = (struct buf *) calloc(1, sizeof(struct buf));
+	bp = calloc(1, sizeof (struct buf));
 	if (bp == NULL)
 		return (1);
 	ch_nbufs++;
@@ -755,13 +706,12 @@ ch_addbuf()
 /*
  *
  */
-	static void
-init_hashtbl()
+static void
+init_hashtbl(void)
 {
-	register int h;
+	int h;
 
-	for (h = 0;  h < BUFHASH_SIZE;  h++)
-	{
+	for (h = 0; h < BUFHASH_SIZE; h++) {
 		thisfile->hashtbl[h].hnext = END_OF_HCHAIN(h);
 		thisfile->hashtbl[h].hprev = END_OF_HCHAIN(h);
 	}
@@ -770,13 +720,12 @@ init_hashtbl()
 /*
  * Delete all buffers for this file.
  */
-	static void
-ch_delbufs()
+static void
+ch_delbufs(void)
 {
-	register struct bufnode *bn;
+	struct bufnode *bn;
 
-	while (ch_bufhead != END_OF_CHAIN)
-	{
+	while (ch_bufhead != END_OF_CHAIN) {
 		bn = ch_bufhead;
 		BUF_RM(bn);
 		free(bufnode_buf(bn));
@@ -788,21 +737,9 @@ ch_delbufs()
 /*
  * Is it possible to seek on a file descriptor?
  */
-	public int
-seekable(f)
-	int f;
+int
+seekable(int f)
 {
-#if MSDOS_COMPILER
-	extern int fd0;
-	if (f == fd0 && !isatty(fd0))
-	{
-		/*
-		 * In MS-DOS, pipes are seekable.  Check for
-		 * standard input, and pretend it is not seekable.
-		 */
-		return (0);
-	}
-#endif
 	return (lseek(f, (off_t)1, SEEK_SET) != BAD_LSEEK);
 }
 
@@ -810,8 +747,8 @@ seekable(f)
  * Force EOF to be at the current read position.
  * This is used after an ignore_eof read, during which the EOF may change.
  */
-	public void
-ch_set_eof()
+void
+ch_set_eof(void)
 {
 	ch_fsize = ch_fpos;
 }
@@ -820,22 +757,18 @@ ch_set_eof()
 /*
  * Initialize file state for a new file.
  */
-	public void
-ch_init(f, flags)
-	int f;
-	int flags;
+void
+ch_init(int f, int flags)
 {
 	/*
 	 * See if we already have a filestate for this file.
 	 */
-	thisfile = (struct filestate *) get_filestate(curr_ifile);
-	if (thisfile == NULL)
-	{
+	thisfile = get_filestate(curr_ifile);
+	if (thisfile == NULL) {
 		/*
 		 * Allocate and initialize a new filestate.
 		 */
-		thisfile = (struct filestate *) 
-				calloc(1, sizeof(struct filestate));
+		thisfile = calloc(1, sizeof (struct filestate));
 		thisfile->buflist.next = thisfile->buflist.prev = END_OF_CHAIN;
 		thisfile->nbufs = 0;
 		thisfile->flags = 0;
@@ -861,24 +794,23 @@ ch_init(f, flags)
 /*
  * Close a filestate.
  */
-	public void
-ch_close()
+void
+ch_close(void)
 {
 	int keepstate = FALSE;
 
 	if (thisfile == NULL)
 		return;
 
-	if (ch_flags & (CH_CANSEEK|CH_POPENED|CH_HELPFILE))
-	{
+	if (ch_flags & (CH_CANSEEK|CH_POPENED|CH_HELPFILE)) {
 		/*
 		 * We can seek or re-open, so we don't need to keep buffers.
 		 */
 		ch_delbufs();
-	} else
+	} else {
 		keepstate = TRUE;
-	if (!(ch_flags & CH_KEEPOPEN))
-	{
+	}
+	if (!(ch_flags & CH_KEEPOPEN)) {
 		/*
 		 * We don't need to keep the file descriptor open
 		 * (because we can re-open it.)
@@ -888,58 +820,26 @@ ch_close()
 		if (!(ch_flags & (CH_POPENED|CH_HELPFILE)))
 			close(ch_file);
 		ch_file = -1;
-	} else
+	} else {
 		keepstate = TRUE;
-	if (!keepstate)
-	{
+	}
+	if (!keepstate) {
 		/*
 		 * We don't even need to keep the filestate structure.
 		 */
 		free(thisfile);
 		thisfile = NULL;
-		set_filestate(curr_ifile, (void *) NULL);
+		set_filestate(curr_ifile, NULL);
 	}
 }
 
 /*
  * Return ch_flags for the current file.
  */
-	public int
-ch_getflags()
+int
+ch_getflags(void)
 {
 	if (thisfile == NULL)
 		return (0);
 	return (ch_flags);
 }
-
-#if 0
-	public void
-ch_dump(struct filestate *fs)
-{
-	struct buf *bp;
-	struct bufnode *bn;
-	unsigned char *s;
-
-	if (fs == NULL)
-	{
-		printf(" --no filestate\n");
-		return;
-	}
-	printf(" file %d, flags %x, fpos %x, fsize %x, blk/off %x/%x\n",
-		fs->file, fs->flags, fs->fpos, 
-		fs->fsize, fs->block, fs->offset);
-	printf(" %d bufs:\n", fs->nbufs);
-	for (bn = fs->next; bn != &fs->buflist;  bn = bn->next)
-	{
-		bp = bufnode_buf(bn);
-		printf("%x: blk %x, size %x \"",
-			bp, bp->block, bp->datasize);
-		for (s = bp->data;  s < bp->data + 30;  s++)
-			if (*s >= ' ' && *s < 0x7F)
-				printf("%c", *s);
-			else
-				printf(".");
-		printf("\"\n");
-	}
-}
-#endif
