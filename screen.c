@@ -139,6 +139,9 @@ raw_mode(int on)
 		 */
 		s.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL);
 
+#ifndef	TAB3
+#define	TAB3	0	/* Its a lie, but TAB3 isn't defined by POSIX. */
+#endif
 		s.c_oflag |= (TAB3 | OPOST | ONLCR);
 		s.c_oflag &= ~(OCRNL | ONOCR | ONLRET);
 		s.c_cc[VMIN] = 1;
