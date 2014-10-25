@@ -1,0 +1,585 @@
+.\" Copyright 2014 Garrett D'Amore <garrett@damore.org>
+.\" Copyright 1989 AT&T  Copyright (c) 2005, Sun Microsystems, Inc.  All Rights Reserved  Portions Copyright (c) 1992, X/Open Company Limited  All Rights Reserved
+.\" Sun Microsystems, Inc. gratefully acknowledges The Open Group for permission to reproduce portions of its copyrighted documentation. Original documentation from The Open Group can be obtained online at
+.\" http://www.opengroup.org/bookstore/.
+.\" The Institute of Electrical and Electronics Engineers and The Open Group, have given us permission to reprint portions of their documentation. In the following statement, the phrase "this text" refers to portions of the system documentation. Portions of this text are reprinted and reproduced in electronic form in the Sun OS Reference Manual, from IEEE Std 1003.1, 2004 Edition, Standard for Information Technology -- Portable Operating System Interface (POSIX), The Open Group Base Specifications Issue 6, Copyright (C) 2001-2004 by the Institute of Electrical and Electronics Engineers, Inc and The Open Group. In the event of any discrepancy between these versions and the original IEEE and The Open Group Standard, the original IEEE and The Open Group Standard is the referee document. The original Standard can be obtained online at http://www.opengroup.org/unix/online.html.
+.\"  This notice shall appear on any product containing this material.
+.\" The contents of this file are subject to the terms of the Common Development and Distribution License (the "License").  You may not use this file except in compliance with the License.
+.\" You can obtain a copy of the license at usr/src/OPENSOLARIS.LICENSE or http://www.opensolaris.org/os/licensing.  See the License for the specific language governing permissions and limitations under the License.
+.\" When distributing Covered Code, include this CDDL HEADER in each file and include the License file at usr/src/OPENSOLARIS.LICENSE.  If applicable, add the following below this CDDL HEADER, with the fields enclosed by brackets "[]" replaced with your own identifying information: Portions Copyright [yyyy] [name of copyright owner]
+.Dd Sep 22, 2014
+.Dt MORE 1
+.Os
+.
+.Sh NAME
+.
+.Nm more
+.Nd browse or page through a text file
+.
+.Sh SYNOPSIS
+.
+.Nm
+.Op Fl cdeisu
+.Op Fl n Ar number
+.Op Fl p Ar command
+.Op Fl t Ar tagstring
+.Op Ar
+.
+.Nm
+.Op Fl cdeisu
+.Op Fl n Ar number
+.Op + Ns Ar command
+.Op Fl t Ar tagstring
+.Op Ar
+.
+.Sh DESCRIPTION
+.
+The
+.Nm
+utility is a filter that displays the contents of a text file on
+the terminal, one screenful at a time.
+It normally pauses after each screenful.
+It then prints
+.Sy "--More--" ,
+along with additional status information, at the bottom of the screen.
+.Lp
+The
+.Nm
+utility scrolls up to display one more line in response to a
+.Sy RETURN
+character, and displays another screenful in response to a
+.Sy SPACE
+character.
+Other commands are listed below.
+.Lp
+The
+.Nm
+utility sets the terminal to
+.Dv NOECHO
+mode, so that the output can be continuous.
+Commands that you type do not normally show up on
+your terminal, except for the \fB/\fR and \fB!\fR commands.
+.Lp
+If the standard output is not a terminal,
+.Nm
+acts just like
+.Xr cat 1 .
+.\" except that a header is printed before each file in a series.
+.
+.Sh OPTIONS
+.
+The following options are supported:
+.
+.Bl -tag -width Fl
+.
+.It Fl c
+Clears before displaying.
+Redraws the screen instead of scrolling for faster displays.
+This option is ignored if the terminal does not have the ability to
+clear to the end of a line.
+.
+.It Fl d
+Displays error messages rather than ringing the terminal bell if an
+unrecognized command is used.
+This is helpful for inexperienced users.
+.
+.It Fl s
+Squeeze.
+Replaces multiple blank lines with a single blank line.
+This is helpful when viewing
+.Xr nroff 1
+output on the screen.
+.
+.It Fl e
+Exits immediately after writing the last line of the last file in the argument
+list.
+.
+.It Fl i
+Performs pattern matching in searches without regard to case.
+.
+.It Fl n Ar number
+Specifies the number of lines per screenful.
+The
+.Ar number
+argument is a positive decimal integer.
+The
+.Fl n
+option overrides any values obtained from the environment.
+.
+.It Fl p Ar command
+For each file examined, initially executes the
+.Nm more
+command in the
+.Ar command
+argument.
+If the command is a positioning command, such as a line
+number or a regular expression search, set the current position to represent
+the final results of the command, without writing any intermediate lines of the
+file.
+For example, the two commands:
+.Lp
+.Dl Nm Fl p 1000j Ar file
+.Dl Nm Fl p 1000G Ar file
+.Lp
+are equivalent and start the display with the current position at line 1000,
+bypassing the lines that \fBj\fR would write and scroll off the screen if it
+had been issued during the file examination. If the positioning command is
+unsuccessful, the first line in the file will be the current position.
+.
+.It Fl t Ar tagstring
+Writes the screenful of the file containing the tag named by the
+.Ar tagstring
+argument.
+See the
+.Xr ctags 1
+utility.
+.
+.It Fl u
+Treats a backspace character as a printable control character, displayed as a
+^H (Control-h), suppressing backspacing and the special handling that produces
+underlined or standout-mode text on some terminal types.
+Also, does not ignore a carriage-return character at the end of a line.
+.
+If both the
+.Fl t Ar tagstring
+and
+.Fl p Ar command
+.Po
+or the obsolescent
+\&+
+.Ar command
+.Pc
+options are given, the
+.Fl t Ar tagstring
+is processed first.
+.
+.It \&+ Ar command
+This is an obsolescent synonym for the
+.Fl p Ar command
+option.
+.El
+.
+.Sh USAGE
+.
+.Ss "Environment"
+The
+.Nm
+utility uses the terminal's
+.Xr terminfo 4
+entry to determine its display characteristics.
+.Lp
+The
+.Nm
+utility looks in the environment variable
+.Ev MORE
+for any preset options.
+For instance, to page through files using the
+.Fl c
+mode by default, set the value of this variable to
+.Fl c .
+(Normally, the command sequence to set up
+this environment variable is placed in the
+.Pa \&.login
+or
+.Pa \&.profile
+file).
+.
+.Ss "Commands"
+.
+The commands take effect immediately.
+It is not necessary to type a carriage return unless the command requires a
+.Ar file , command , tagstring , No or Ar pattern .
+Up to the time when the command character
+itself is given, the user may type the line kill character to cancel the
+numerical argument being formed. In addition, the user may type the erase
+character to redisplay the prompt.
+.Lp
+In the following commands,
+.Ar n
+is a numerical argument (1 by default).
+.Bl -column "[n]RETURN" "A VERY LONG DESCRIPTION"
+.
+.It
+.Oo Ar n Oc Ns Sy SPACE
+.Ta
+Display another screenful, or
+.Ar n
+more lines if
+.Ar n
+is specified.
+.
+.Lp
+.It
+.Oo Ar n Oc Ns Sy RETURN
+.Lp
+.Oo Ar n Oc Ns Ic j
+.Ta
+Display
+.Ar n
+more lines.
+.
+.Lp
+.It
+.Oo Ar n Oc Ns Ic b
+.Lp
+.Oo Ar n Oc Ns Ic ^B
+.Ta
+Skip back
+.Ar n
+screenfuls and then print a screenful.
+.
+.Lp
+.It
+.Oo Ar n Oc Ns Ic d
+.Lp
+.Oo Ar n Oc Ns Ic ^D
+.Ta
+Scroll forward one half screenful or
+.Ar n
+more lines.
+If
+.Ar n
+is specified, the count becomes the default for subsequent
+.Ic d
+and
+.Ic u
+commands.
+.
+.Lp
+.It
+.Oo Ar n Oc Ns Ic f
+.Lp
+.Oo Ar n Oc Ns Ic ^F
+.Ta
+Skip
+.Ar n
+screens full and then print a screenful.
+.
+.Lp
+.It Ic h
+.Ta
+Help.
+Give a description of all the
+.Nm
+commands.
+.
+.Lp
+.It Ic ^L
+.Ta
+Refresh.
+.
+.Lp
+.It Oo Ar n Oc Ns Ic n
+.Ta
+Search for the
+.Ar n Ns No th
+occurrence of the last
+.Ar pattern
+entered.
+.
+.Lp
+.It
+.Ic q
+.Lp
+.Ic Q
+.Lp
+.Ic \&:q
+.Lp
+.Ic \&:Q
+.Lp
+.Ic ZZ
+.Ta
+Exit from
+.Nm .
+.
+.Lp
+.It
+.Oo Ar n Oc Ns Ic s
+.Ta
+Skip
+.Ar n
+lines and then print a screenful.
+.
+.Lp
+.It
+.Ic v
+.Ta
+Drop into the
+.Xr vi 1
+editor at the current line of the current file.
+.
+.Lp
+.It
+.Oo Ar n Oc Ns Ic z
+.Ta
+Same as
+.Sy SPACE ,
+except that
+.Ar n ,
+if present, becomes the new default number of lines per screenful.
+.
+.Lp
+.It
+.Ic =
+.Lp
+.Ic ^G
+.Ta
+Display the current line number.
+.
+.Lp
+.It
+.Oo Ar n Oc Ns Ic / Ns Ar pattern
+.Ta
+Search forward for the
+.Ar n Ns No th
+occurrence of the regular expression
+.Ar pattern .
+Display the screenful starting on the line that contains the
+.Ar n Ns No th
+match for the regular expression
+.Ar pattern ,
+or the end of a pipe, whichever comes first.
+If
+.Nm
+is displaying a file and
+there is no match, its position in the file remains unchanged.
+Regular expressions can be edited using erase and kill characters.
+Erasing back past the first column cancels the search command.
+.
+.Lp
+.It
+.Ic \&! Ns Ar command
+.Ta
+Invoke a shell to execute
+.Ar command .
+The characters
+.Sy \&% No and Sy \&! ,
+when used within \fIcommand\fR are replaced with the current filename and the
+previous shell command, respectively.
+If there is no current filename,
+.Sy \&%
+is not expanded.
+Prepend a backslash to these characters to escape expansion.
+.Lp
+.It Ic \&:f
+.Ta
+Display the current filename and line number.
+.
+.Lp
+.It Oo Ar n Oc Ns Ic \&:n
+.Ta
+Skip to the
+.Ar n Ns No th
+next filename given in the command line, or to the last
+filename in the list if
+.Ar n
+is out of range.
+.
+.Lp
+.It Oo Ar n Oc Ns Ic \&:p
+.Ta
+Skip to the
+.Ar n Ns No th
+previous filename given in the command line, or to the
+first filename if
+.Ar n
+is out of range.
+.
+.Lp
+.It Oo Ar n Oc Ns Ic g
+.Ta
+Go to line number
+.Ar n
+with the default of the first line in the file.
+.
+.Lp
+.It Oo Ar n Oc Ns Ic G
+.Ta
+Go to line number
+.Ar n
+with the default of the last line in the file.
+.
+.
+.Lp
+.It Oo Ar n Oc Ns Ic k
+.Ta
+Scroll backwards one or
+.Ar n
+lines, if specified.
+.
+.Lp
+.It
+.Ic m Ns Ar letter
+.Ta
+Mark the current position with the name
+.Ar letter .
+.
+.Lp
+.It Ic N
+.Ta
+Reverse direction of search.
+.
+.Lp
+.It Ic r
+.Ta
+Refresh the screen.
+.
+.Lp
+.It Ic R
+.Ta
+Refresh the screen, discarding any buffered input.
+.
+.Lp
+.It
+.Oo Ar n Oc Ns Ic u
+.Lp
+.Oo Ar n Oc Ns Ic ^U
+.Ta
+Scroll backwards one half a screen of
+.Ar n
+lines, if specified.
+If
+.Ar n
+is specified, the count becomes the new default for subsequent
+.Ic d
+and
+.Ic u
+commands.
+.
+.Lp
+.It
+.Ic \&:e Op Ar file
+.Ta
+Examine (display) a new file.
+If no
+.Ar file
+is specified, the current file is redisplayed.
+.
+.Lp
+.It
+.Ic :t Ar tagstring
+.Ta
+Go to the tag named by the
+.Ar tagstring
+argument and scroll/rewrite the screen with the tagged line in the current
+position. See the
+.Xr ctags 1
+utility.
+.
+.Lp
+.It
+.Ic \&' Ns Ar letter
+.Ta
+Return to the position that was previously marked with the name
+.Ar letter .
+.
+.Lp
+.It
+.Ic \&''
+.Ta
+Return to the position from which the last move of more than a screenful was
+made.
+Defaults to the beginning of the file.
+.
+.Lp
+.It
+.Oo Ar n Oc Ns Ic \&? Ns Oo Ic \&! Oc Ns Ar pattern
+.Ta
+Search backward in the file for the
+.Ar n Ns No th
+line containing the
+.Ar pattern .
+The
+.Ic \&!
+specifies to search backward for the
+.Ar n Ns No th
+line that does not contain the
+.Ar pattern .
+.
+.Lp
+.It
+.Oo Ar n Oc Ns Ic \&/! Ns Ar pattern
+.Ta
+Search forward in the file for the
+.Ar n Ns No th
+line that does not contain the pattern.
+.
+.Lp
+.It
+.Ic \&! Ns Op Ar command
+.Ta
+Invoke a shell or the specified command.
+.El
+.
+.Sh ENVIRONMENT VARIABLES
+.
+See
+.Xr environ 5
+for descriptions of the following environment variables
+that affect the execution of
+.Nm :
+.Ev LANG , LC_ALL , LC_COLLATE , LC_CTYPE , LC_MESSAGES , NLSPATH ,
+and
+.Ev TERM .
+.Lp
+The following environment variables also affect the execution of
+.Nm :
+.Bl -tag -width Ev
+.It Ev COLUMNS
+Overrides the system selected horizontal screen size.
+.It Ev EDITOR
+Used by the
+.Ic v
+command to select an editor.
+.
+.It Ev LINES
+Overrides the system selected vertical screen size.
+The
+.Fl n
+option has precedence over
+.Ev LINES
+in determining the number of lines in a screen.
+.
+.It Ev MORE
+A string specifying options as described in the
+.Sx OPTIONS
+section, above.
+As in a command line, the options must be separated by blank characters and
+each option specification must start with a \(mi.
+Any command line options are processed
+after those specified in
+.Ev MORE
+as though the command line were:
+.Lp
+.Dl Ic more Ev $MORE Ar options operands
+.
+.El
+.
+.Sh EXIT STATUS
+.
+.Ex -std
+.
+.
+.\" note that more/less only understands UTF-8 at present
+.\" Sh CODE SET INDEPENDENCE
+.\" Sy Enabled .
+.
+.Sh INTERFACE STABILITY
+.
+.Sy Standard .
+.
+.Sh SEE ALSO
+.Xr cat 1 ,
+.Xr ctags 1 ,
+.Xr man 1 ,
+.Xr nroff 1 ,
+.Xr sh 1 ,
+.Xr terminfo 4 ,
+.Xr environ 5 ,
+.Xr largefile 5 ,
+.Xr regex 5 ,
+.Xr standards 5
+.
+.Sh NOTES
+.
+This utility may not behave correctly if the terminal is not set up properly.
