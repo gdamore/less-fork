@@ -30,7 +30,6 @@
 #include "less.h"
 #include "option.h"
 
-extern int nbufs;
 extern int bufspace;
 extern int pr_type;
 extern int plusoption;
@@ -50,8 +49,6 @@ extern IFILE curr_ifile;
 extern char version[];
 extern int jump_sline;
 extern int jump_sline_fraction;
-extern int shift_count;
-extern int shift_count_fraction;
 extern int less_is_more;
 extern char *namelogfile;
 extern int force_logfile;
@@ -59,6 +56,8 @@ extern int logfile;
 char *tagoption = NULL;
 extern char *tags;
 
+int shift_count;	/* Number of positions to shift horizontally */
+static int shift_count_fraction = -1;
 
 /*
  * Handler for -o option.
@@ -246,7 +245,7 @@ void
 opt_t(int type, char *s)
 {
 	IFILE save_ifile;
-	POSITION pos;
+	off_t pos;
 
 	switch (type) {
 	case INIT:
@@ -264,7 +263,7 @@ opt_t(int type, char *s)
 		 * Try to open the file containing the tag
 		 * and search for the tag in that file.
 		 */
-		if (edit_tagfile() || (pos = tagsearch()) == NULL_POSITION) {
+		if (edit_tagfile() || (pos = tagsearch()) == -1) {
 			/* Failed: reopen the old file. */
 			reedit_ifile(save_ifile);
 			break;
@@ -464,7 +463,7 @@ opt_x(int type, char *s)
 		tabdefault = tabstops[ntabstops-1] - tabstops[ntabstops-2];
 		break;
 	case QUERY:
-		strcpy(msg, "Tab stops ");
+		(void) strcpy(msg, "Tab stops ");
 		if (ntabstops > 2) {
 			for (i = 1;  i < ntabstops;  i++) {
 				if (i > 1)

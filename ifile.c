@@ -48,7 +48,7 @@ struct ifile {
  * Anchor for linked list.
  */
 static struct ifile anchor = { &anchor, &anchor, NULL, NULL, 0, 0, '\0',
-				{ NULL_POSITION, 0 } };
+				{ -1, 0 } };
 static int ifiles = 0;
 
 static void
@@ -110,7 +110,7 @@ new_ifile(char *filename, struct ifile *prev)
 	 */
 	p = ecalloc(1, sizeof (struct ifile));
 	p->h_filename = save(filename);
-	p->h_scrpos.pos = NULL_POSITION;
+	p->h_scrpos.pos = -1;
 	p->h_opened = 0;
 	p->h_hold = 0;
 	p->h_filestate = NULL;
@@ -253,7 +253,7 @@ store_pos(IFILE ifile, struct scrpos *scrpos)
 
 /*
  * Recall the file position associated with a file.
- * If no position has been associated with the file, return NULL_POSITION.
+ * If no position has been associated with the file, return -1.
  */
 void
 get_pos(IFILE ifile, struct scrpos *scrpos)

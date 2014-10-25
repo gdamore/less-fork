@@ -55,12 +55,12 @@ eof_bell(void)
 int
 eof_displayed(void)
 {
-	POSITION pos;
+	off_t pos;
 
 	if (ignore_eoi)
 		return (0);
 
-	if (ch_length() == NULL_POSITION)
+	if (ch_length() == -1)
 		/*
 		 * If the file length is not known,
 		 * we can't possibly be displaying EOF.
@@ -73,7 +73,7 @@ eof_displayed(void)
 	 * we must be just at EOF.
 	 */
 	pos = position(BOTTOM_PLUS_ONE);
-	return (pos == NULL_POSITION || pos == ch_length());
+	return (pos == -1 || pos == ch_length());
 }
 
 /*
@@ -82,7 +82,7 @@ eof_displayed(void)
 int
 entire_file_displayed(void)
 {
-	POSITION pos;
+	off_t pos;
 
 	/* Make sure last line of file is displayed. */
 	if (!eof_displayed())
@@ -90,7 +90,7 @@ entire_file_displayed(void)
 
 	/* Make sure first line of file is displayed. */
 	pos = position(0);
-	return (pos == NULL_POSITION || pos == 0);
+	return (pos == -1 || pos == 0);
 }
 
 /*
@@ -114,11 +114,11 @@ squish_check(void)
  * "force" means display the n lines even if we hit end of file.
  * "only_last" means display only the last screenful if n > screen size.
  * "nblank" is the number of blank lines to draw before the first
- *   real line.  If nblank > 0, the pos must be NULL_POSITION.
+ *   real line.  If nblank > 0, the pos must be -1.
  *   The first real line after the blanks will start at ch_zero().
  */
 void
-forw(int n, POSITION pos, int force, int only_last, int nblank)
+forw(int n, off_t pos, int force, int only_last, int nblank)
 {
 	int nlines = 0;
 	int do_repaint;
@@ -189,14 +189,14 @@ forw(int n, POSITION pos, int force, int only_last, int nblank)
 			 * Get the next line from the file.
 			 */
 			pos = forw_line(pos);
-			if (pos == NULL_POSITION) {
+			if (pos == -1) {
 				/*
 				 * End of file: stop here unless the top line
 				 * is still empty, or "force" is true.
 				 * Even if force is true, stop when the last
 				 * line in the file reaches the top of screen.
 				 */
-				if (!force && position(TOP) != NULL_POSITION)
+				if (!force && position(TOP) != -1)
 					break;
 				if (!empty_lines(0, 0) &&
 				    !empty_lines(1, 1) &&
@@ -222,7 +222,7 @@ forw(int n, POSITION pos, int force, int only_last, int nblank)
 		 * start the display after the beginning of the file,
 		 * and it is not appropriate to squish in that case.
 		 */
-		if (first_time && pos == NULL_POSITION && !top_scroll &&
+		if (first_time && pos == -1 && !top_scroll &&
 		    tagoption == NULL && !plusoption) {
 			squished = 1;
 			continue;
@@ -243,7 +243,7 @@ forw(int n, POSITION pos, int force, int only_last, int nblank)
  * Display n lines, scrolling backward.
  */
 void
-back(int n, POSITION pos, int force, int only_last)
+back(int n, off_t pos, int force, int only_last)
 {
 	int nlines = 0;
 	int do_repaint;
@@ -255,7 +255,7 @@ back(int n, POSITION pos, int force, int only_last)
 		 * Get the previous line of input.
 		 */
 		pos = back_line(pos);
-		if (pos == NULL_POSITION) {
+		if (pos == -1) {
 			/*
 			 * Beginning of file: stop here unless "force" is true.
 			 */
@@ -291,7 +291,7 @@ back(int n, POSITION pos, int force, int only_last)
 void
 forward(int n, int force, int only_last)
 {
-	POSITION pos;
+	off_t pos;
 
 	if (get_quit_at_eof() && eof_displayed() &&
 	    !(ch_getflags() & CH_HELPFILE)) {
@@ -305,8 +305,7 @@ forward(int n, int force, int only_last)
 	}
 
 	pos = position(BOTTOM_PLUS_ONE);
-	if (pos == NULL_POSITION &&
-	    (!force || empty_lines(2, sc_height-1))) {
+	if (pos == -1 && (!force || empty_lines(2, sc_height-1))) {
 		if (ignore_eoi) {
 			/*
 			 * ignore_eoi is to support A_F_FOREVER.
@@ -319,7 +318,7 @@ forward(int n, int force, int only_last)
 				do {
 					back(1, position(TOP), 1, 0);
 					pos = position(BOTTOM_PLUS_ONE);
-				} while (pos == NULL_POSITION);
+				} while (pos == -1);
 			}
 		} else {
 			eof_bell();
@@ -336,10 +335,10 @@ forward(int n, int force, int only_last)
 void
 backward(int n, int force, int only_last)
 {
-	POSITION pos;
+	off_t pos;
 
 	pos = position(TOP);
-	if (pos == NULL_POSITION && (!force || position(BOTTOM) == 0)) {
+	if (pos == -1 && (!force || position(BOTTOM) == 0)) {
 		eof_bell();
 		return;
 	}

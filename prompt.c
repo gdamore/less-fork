@@ -58,9 +58,9 @@ static const char h_proto[] =
 static const char w_proto[] =
 	"Waiting for data";
 static const char more_proto[] =
-	"--More--(?eEND ?x- Next\\: %x.:?pB%pB\\%:byte %bB?s/%s...%t)";
+	"%f (?eEND ?x- Next\\: %x.:?pB%pB\\%:byte %bB?s/%s...%t)";
 static const char more_M_proto[] =
-	"--More--(?eEND ?x- Next\\: %x.:?pB%pB\\%:byte %bB?s/%s...%t)"
+	"%f (?eEND ?x- Next\\: %x.:?pB%pB\\%:byte %bB?s/%s...%t)"
 	"[Press space to continue, q to quit, h for help]";
 
 char *prproto[3];

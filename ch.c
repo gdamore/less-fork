@@ -24,7 +24,7 @@ extern dev_t curr_dev;
 extern ino_t curr_ino;
 extern int less_is_more;
 
-typedef POSITION BLOCKNUM;
+typedef off_t BLOCKNUM;
 
 int ignore_eoi;
 
@@ -58,11 +58,11 @@ struct filestate {
 	struct bufnode hashtbl[BUFHASH_SIZE];
 	int file;
 	int flags;
-	POSITION fpos;
+	off_t fpos;
 	int nbufs;
 	BLOCKNUM block;
 	unsigned int offset;
-	POSITION fsize;
+	off_t fsize;
 };
 
 #define	ch_bufhead	thisfile->buflist.next
@@ -149,8 +149,8 @@ ch_get(void)
 	int n;
 	int slept;
 	int h;
-	POSITION pos;
-	POSITION len;
+	off_t pos;
+	off_t len;
 
 	if (thisfile == NULL)
 		return (EOI);
@@ -218,7 +218,7 @@ ch_get(void)
 
 read_more:
 	pos = (ch_block * LBUFSIZE) + bp->datasize;
-	if ((len = ch_length()) != NULL_POSITION && pos >= len)
+	if ((len = ch_length()) != -1 && pos >= len)
 		/*
 		 * At end of file.
 		 */
@@ -366,7 +366,7 @@ end_logfile(void)
 
 	if (logfile < 0)
 		return;
-	if (!tried && ch_fsize == NULL_POSITION) {
+	if (!tried && ch_fsize == -1) {
 		tried = TRUE;
 		ierror("Finishing logfile", NULL_PARG);
 		while (ch_forw_get() != EOI)
@@ -435,16 +435,16 @@ buffered(BLOCKNUM block)
  * Return 0 if successful, non-zero if can't seek there.
  */
 int
-ch_seek(POSITION pos)
+ch_seek(off_t pos)
 {
 	BLOCKNUM new_block;
-	POSITION len;
+	off_t len;
 
 	if (thisfile == NULL)
 		return (0);
 
 	len = ch_length();
-	if (pos < ch_zero() || (len != NULL_POSITION && pos > len))
+	if (pos < ch_zero() || (len != -1 && pos > len))
 		return (1);
 
 	new_block = pos / LBUFSIZE;
@@ -474,7 +474,7 @@ ch_seek(POSITION pos)
 int
 ch_end_seek(void)
 {
-	POSITION len;
+	off_t len;
 
 	if (thisfile == NULL)
 		return (0);
@@ -483,7 +483,7 @@ ch_end_seek(void)
 		ch_fsize = filesize(ch_file);
 
 	len = ch_length();
-	if (len != NULL_POSITION)
+	if (len != -1)
 		return (ch_seek(len));
 
 	/*
@@ -531,13 +531,13 @@ ch_beg_seek(void)
 /*
  * Return the length of the file, if known.
  */
-POSITION
+off_t
 ch_length(void)
 {
 	if (thisfile == NULL)
-		return (NULL_POSITION);
+		return (-1);
 	if (ignore_eoi)
-		return (NULL_POSITION);
+		return (-1);
 	if (ch_flags & CH_HELPFILE)
 		return (less_is_more ? size_morehelpdata : size_helpdata);
 	if (ch_flags & CH_NODATA)
@@ -548,11 +548,11 @@ ch_length(void)
 /*
  * Return the current position in the file.
  */
-POSITION
+off_t
 ch_tell(void)
 {
 	if (thisfile == NULL)
-		return (NULL_POSITION);
+		return (-1);
 	return ((ch_block * LBUFSIZE) + ch_offset);
 }
 
@@ -631,7 +631,7 @@ ch_flush(void)
 		 * If input is a pipe, we don't flush buffer contents,
 		 * since the contents can't be recovered.
 		 */
-		ch_fsize = NULL_POSITION;
+		ch_fsize = -1;
 		return;
 	}
 
@@ -662,7 +662,7 @@ ch_flush(void)
 	 * Force them to be non-seekable here.
 	 */
 	if (ch_fsize == 0) {
-		ch_fsize = NULL_POSITION;
+		ch_fsize = -1;
 		ch_flags &= ~CH_CANSEEK;
 	}
 #endif
@@ -776,7 +776,7 @@ ch_init(int f, int flags)
 		thisfile->block = 0;
 		thisfile->offset = 0;
 		thisfile->file = -1;
-		thisfile->fsize = NULL_POSITION;
+		thisfile->fsize = -1;
 		ch_flags = flags;
 		init_hashtbl();
 		/*

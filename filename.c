@@ -365,15 +365,15 @@ bin_file(int f)
 /*
  * Try to determine the size of a file by seeking to the end.
  */
-static POSITION
+static off_t
 seek_filesize(int f)
 {
 	off_t spos;
 
 	spos = lseek(f, (off_t)0, SEEK_END);
 	if (spos == BAD_LSEEK)
-		return (NULL_POSITION);
-	return ((POSITION) spos);
+		return (-1);
+	return (spos);
 }
 
 /*
@@ -753,13 +753,13 @@ bad_file(char *filename)
  * Return the size of a file, as cheaply as possible.
  * In Unix, we can stat the file.
  */
-POSITION
+off_t
 filesize(int f)
 {
 	struct stat statbuf;
 
 	if (fstat(f, &statbuf) >= 0)
-		return ((POSITION) statbuf.st_size);
+		return (statbuf.st_size);
 	return (seek_filesize(f));
 }
 

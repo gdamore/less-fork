@@ -31,7 +31,7 @@ match_brac(int obrac, int cbrac, int forwdir, int n)
 {
 	int c;
 	int nest;
-	POSITION pos;
+	off_t pos;
 	int (*chget)(void);
 
 	/*
@@ -40,7 +40,7 @@ match_brac(int obrac, int cbrac, int forwdir, int n)
 	 * depending on the type of bracket.
 	 */
 	pos = position((forwdir) ? TOP : BOTTOM);
-	if (pos == NULL_POSITION || ch_seek(pos)) {
+	if (pos == -1 || ch_seek(pos)) {
 		if (forwdir)
 			error("Nothing in top line", NULL_PARG);
 		else

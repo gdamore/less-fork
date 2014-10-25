@@ -76,7 +76,7 @@ lsystem(const char *cmd, const char *donemsg)
 	inp = dup(0);
 	(void) close(0);
 	if (open("/dev/tty", OPEN_READ) < 0)
-		dup(inp);
+		(void) dup(inp);
 
 	/*
 	 * Pass the command to the system to be executed.
@@ -108,9 +108,9 @@ lsystem(const char *cmd, const char *donemsg)
 	/*
 	 * Restore standard input, reset signals, raw mode, etc.
 	 */
-	close(0);
-	dup(inp);
-	close(inp);
+	(void) close(0);
+	(void) dup(inp);
+	(void) close(inp);
 
 	init_signals(1);
 	raw_mode(1);
@@ -118,7 +118,7 @@ lsystem(const char *cmd, const char *donemsg)
 		putstr(donemsg);
 		putstr("  (press RETURN)");
 		get_return();
-		putchr('\n');
+		(void) putchr('\n');
 		flush();
 	}
 	init();
@@ -183,7 +183,7 @@ pipe_mark(int c, char *cmd)
  * Feed it the file contents between the positions spos and epos.
  */
 static int
-pipe_data(char *cmd, POSITION spos, POSITION epos)
+pipe_data(char *cmd, off_t spos, off_t epos)
 {
 	FILE *f;
 	int c;
@@ -237,7 +237,7 @@ pipe_data(char *cmd, POSITION spos, POSITION epos)
 			break;
 	}
 
-	pclose(f);
+	(void) pclose(f);
 
 	LSIGNAL(SIGPIPE, SIG_DFL);
 	init_signals(1);

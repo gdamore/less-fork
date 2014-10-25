@@ -31,8 +31,8 @@ extern int top_scroll;
 void
 jump_forw(void)
 {
-	POSITION pos;
-	POSITION end_pos;
+	off_t pos;
+	off_t end_pos;
 
 	if (ch_end_seek()) {
 		error("Cannot seek to end of file", NULL_PARG);
@@ -52,8 +52,8 @@ jump_forw(void)
 	pos_clear();
 	end_pos = ch_tell();
 	pos = back_line(end_pos);
-	if (pos == NULL_POSITION) {
-		jump_loc((POSITION)0, sc_height-1);
+	if (pos == -1) {
+		jump_loc(0, sc_height-1);
 	} else {
 		jump_loc(pos, sc_height-1);
 		if (position(sc_height-1) != end_pos)
@@ -67,7 +67,7 @@ jump_forw(void)
 void
 jump_back(LINENUM linenum)
 {
-	POSITION pos;
+	off_t pos;
 	PARG parg;
 
 	/*
@@ -77,7 +77,7 @@ jump_back(LINENUM linenum)
 	 * use ch_beg_seek() to get as close as we can.
 	 */
 	pos = find_pos(linenum);
-	if (pos != NULL_POSITION && ch_seek(pos) == 0) {
+	if (pos != -1 && ch_seek(pos) == 0) {
 		if (show_attn)
 			set_attnpos(pos);
 		jump_loc(pos, jump_sline);
@@ -112,17 +112,17 @@ repaint(void)
 void
 jump_percent(int percent, long fraction)
 {
-	POSITION pos, len;
+	off_t pos, len;
 
 	/*
 	 * Determine the position in the file
 	 * (the specified percentage of the file's length).
 	 */
-	if ((len = ch_length()) == NULL_POSITION) {
+	if ((len = ch_length()) == -1) {
 		ierror("Determining length of file", NULL_PARG);
 		ch_end_seek();
 	}
-	if ((len = ch_length()) == NULL_POSITION) {
+	if ((len = ch_length()) == -1) {
 		error("Don't know length of file", NULL_PARG);
 		return;
 	}
@@ -139,7 +139,7 @@ jump_percent(int percent, long fraction)
  * the first character in a line.
  */
 void
-jump_line_loc(POSITION pos, int sline)
+jump_line_loc(off_t pos, int sline)
 {
 	int c;
 
@@ -164,11 +164,11 @@ jump_line_loc(POSITION pos, int sline)
  * Place the target line on a specified line on the screen.
  */
 void
-jump_loc(POSITION pos, int sline)
+jump_loc(off_t pos, int sline)
 {
 	int nline;
-	POSITION tpos;
-	POSITION bpos;
+	off_t tpos;
+	off_t bpos;
 
 	/*
 	 * Normalize sline.
@@ -205,7 +205,7 @@ jump_loc(POSITION pos, int sline)
 	 */
 	tpos = position(TOP);
 	bpos = position(BOTTOM_PLUS_ONE);
-	if (tpos == NULL_POSITION || pos >= tpos) {
+	if (tpos == -1 || pos >= tpos) {
 		/*
 		 * The desired line is after the current screen.
 		 * Move back in the file far enough so that we can
@@ -213,7 +213,7 @@ jump_loc(POSITION pos, int sline)
 		 * sline-th line on the screen.
 		 */
 		for (nline = 0;  nline < sline;  nline++) {
-			if (bpos != NULL_POSITION && pos <= bpos) {
+			if (bpos != -1 && pos <= bpos) {
 				/*
 				 * Surprise!  The desired line is
 				 * close enough to the current screen
@@ -225,7 +225,7 @@ jump_loc(POSITION pos, int sline)
 				return;
 			}
 			pos = back_line(pos);
-			if (pos == NULL_POSITION) {
+			if (pos == -1) {
 				/*
 				 * Oops.  Ran into the beginning of the file.
 				 * Exit the loop here and rely on forw()
@@ -248,7 +248,7 @@ jump_loc(POSITION pos, int sline)
 		 */
 		for (nline = sline;  nline < sc_height - 1;  nline++) {
 			pos = forw_line(pos);
-			if (pos == NULL_POSITION) {
+			if (pos == -1) {
 				/*
 				 * Ran into end of file.
 				 * This shouldn't normally happen,

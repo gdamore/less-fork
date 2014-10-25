@@ -36,7 +36,7 @@ extern int ignore_eoi;
 extern int secure;
 extern int hshift;
 extern int show_attn;
-extern POSITION highest_hilite;
+extern off_t highest_hilite;
 extern char *every_first_cmd;
 extern char *curr_altfilename;
 extern char version[];
@@ -61,9 +61,9 @@ static struct loption *curropt;
 static int opt_lower;
 static int optflag;
 static int optgetname;
-static POSITION bottompos;
+static off_t bottompos;
 static int save_hshift;
-static char pipec;
+static int pipec;
 
 struct ungot {
 	struct ungot *ug_next;
@@ -221,6 +221,26 @@ exec_mca(void)
 	case A_EXAMINE:
 		if (secure)
 			break;
+
+		/* POSIX behavior, but possibly generally useful */
+		if (strlen(cbuf) == 0) {
+			reopen_curr_ifile();
+			jump_back(1);
+			break;
+		}
+		/* POSIX behavior - probably not generally useful */
+		if (less_is_more && (strcmp(cbuf, "#") == 0)) {
+			if (ntags()) {
+				error("No previous file", NULL_PARG);
+				break;
+			}
+			if (edit_prev(1)) {
+				error("No previous file", NULL_PARG);
+			} else {
+				jump_back(1);
+			}
+			break;
+		}
 		edit_list(cbuf);
 		/* If tag structure is loaded then clean it up. */
 		cleantags();
@@ -584,7 +604,7 @@ make_display(void)
 	 * If nothing is displayed yet, display starting from initial_scrpos.
 	 */
 	if (empty_screen()) {
-		if (initial_scrpos.pos == NULL_POSITION)
+		if (initial_scrpos.pos == -1)
 			/*
 			 * {{ Maybe this should be:
 			 *    jump_loc(ch_zero(), jump_sline);
@@ -878,7 +898,7 @@ multi_search(char *pattern, int n)
 static int
 forw_loop(int until_hilite)
 {
-	POSITION curr_len;
+	off_t curr_len;
 
 	if (ch_getflags() & CH_HELPFILE)
 		return (A_NOACTION);
@@ -886,7 +906,7 @@ forw_loop(int until_hilite)
 	cmd_exec();
 	jump_forw();
 	curr_len = ch_length();
-	highest_hilite = until_hilite ? curr_len : NULL_POSITION;
+	highest_hilite = until_hilite ? curr_len : -1;
 	ignore_eoi = 1;
 	while (!sigs) {
 		if (until_hilite && highest_hilite > curr_len) {
@@ -1245,7 +1265,7 @@ again:
 			cmd_exec();
 			if (number < 0)
 				number = 0;
-			jump_line_loc((POSITION) number, jump_sline);
+			jump_line_loc((off_t) number, jump_sline);
 			break;
 
 		case A_STAT:
@@ -1466,8 +1486,8 @@ again:
 				break;
 			}
 			if (edit(tagfile) == 0) {
-				POSITION pos = tagsearch();
-				if (pos != NULL_POSITION)
+				off_t pos = tagsearch();
+				if (pos != -1)
 					jump_loc(pos, jump_sline);
 			}
 			break;
@@ -1481,8 +1501,8 @@ again:
 				break;
 			}
 			if (edit(tagfile) == 0) {
-				POSITION pos = tagsearch();
-				if (pos != NULL_POSITION)
+				off_t pos = tagsearch();
+				if (pos != -1)
 					jump_loc(pos, jump_sline);
 			}
 			break;

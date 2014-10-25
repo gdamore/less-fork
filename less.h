@@ -84,12 +84,9 @@
  * Special types and constants.
  */
 typedef unsigned long LWCHAR;
-typedef off_t		POSITION;
 typedef off_t		LINENUM;
 #define	MIN_LINENUM_WIDTH  7	/* Min printing width of a line number */
 #define	MAX_UTF_CHAR_LEN   6	/* Max bytes in one UTF-8 char */
-
-#define	NULL_POSITION	((off_t)(-1))
 
 /*
  * Flags for open()

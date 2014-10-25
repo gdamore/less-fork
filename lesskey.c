@@ -501,7 +501,7 @@ add_cmd_char(int c)
 		lkerr("too many commands");
 		exit(1);
 	}
-	*(currtable->pbuffer)++ = c;
+	*(currtable->pbuffer)++ = (char)c;
 }
 
 /*

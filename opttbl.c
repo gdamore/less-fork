@@ -41,13 +41,11 @@ int force_open;		/* Open the file even if not regular file */
 int swindow;		/* Size of scrolling window */
 int jump_sline;		/* Screen line of "jump target" */
 long jump_sline_fraction = -1;
-long shift_count_fraction = -1;
 int chopline;		/* Truncate displayed lines at screen width */
 int no_init;		/* Disable sending ti/te termcap strings */
 int no_keypad;		/* Disable sending ks/ke termcap strings */
 int twiddle;		/* Show tildes after EOF */
 int show_attn;		/* Hilite first unread line */
-int shift_count;	/* Number of positions to shift horizontally */
 int status_col;		/* Display a status column */
 int use_lessopen;	/* Use the LESSOPEN filter */
 int quit_on_intr;	/* Quit on interrupt */

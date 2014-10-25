@@ -52,7 +52,7 @@ put_line(void)
 		if (c == '\b')
 			putbs();
 		else
-			putchr(c);
+			(void) putchr(c);
 	}
 
 	at_exit();
@@ -83,7 +83,7 @@ flush(void)
 	int n;
 	int fd;
 
-	n = ob - obuf;
+	n = (intptr_t)ob - (intptr_t)obuf;
 	if (n == 0)
 		return;
 
@@ -109,7 +109,7 @@ putchr(int c)
 	 */
 	if (ob >= &obuf[sizeof (obuf)-1])
 		flush();
-	*ob++ = c;
+	*ob++ = (char)c;
 	return (c);
 }
 
@@ -120,7 +120,7 @@ void
 putstr(const char *s)
 {
 	while (*s != '\0')
-		putchr(*s++);
+		(void) putchr(*s++);
 }
 
 
@@ -145,7 +145,7 @@ funcname(type num, char *buf)			\
 	(void) strcpy(buf, s);			\
 }
 
-TYPE_TO_A_FUNC(postoa, POSITION)
+TYPE_TO_A_FUNC(postoa, off_t)
 TYPE_TO_A_FUNC(linenumtoa, LINENUM)
 TYPE_TO_A_FUNC(inttoa, int)
 
@@ -188,7 +188,7 @@ less_printf(const char *fmt, PARG *parg)
 	col = 0;
 	while (*fmt != '\0') {
 		if (*fmt != '%') {
-			putchr(*fmt++);
+			(void) putchr(*fmt++);
 			col++;
 		} else {
 			++fmt;
@@ -197,7 +197,7 @@ less_printf(const char *fmt, PARG *parg)
 				s = parg->p_string;
 				parg++;
 				while (*s != '\0') {
-					putchr(*s++);
+					(void) putchr(*s++);
 					col++;
 				}
 				break;
@@ -254,7 +254,7 @@ error(const char *fmt, PARG *parg)
 	col += less_printf(fmt, parg);
 
 	if (!(any_display && is_tty)) {
-		putchr('\n');
+		(void) putchr('\n');
 		return;
 	}
 
@@ -315,7 +315,7 @@ query(const char *fmt, PARG *parg)
 	c = getchr();
 
 	if (!(any_display && is_tty)) {
-		putchr('\n');
+		(void) putchr('\n');
 		return (c);
 	}
 

@@ -45,8 +45,8 @@ struct linenum_info
 {
 	struct linenum_info *next;	/* Link to next in the list */
 	struct linenum_info *prev;	/* Line to previous in the list */
-	POSITION pos;			/* File position */
-	POSITION gap;			/* Gap between prev and next */
+	off_t pos;			/* File position */
+	off_t gap;			/* Gap between prev and next */
 	LINENUM line;			/* Line number */
 };
 /*
@@ -96,7 +96,7 @@ clr_linenum(void)
 	 */
 	anchor.next = anchor.prev = &anchor;
 	anchor.gap = 0;
-	anchor.pos = (POSITION)0;
+	anchor.pos = 0;
 	anchor.line = 1;
 }
 
@@ -123,13 +123,13 @@ calcgap(struct linenum_info *p)
  * FIRST character in the specified line.
  */
 void
-add_lnum(LINENUM linenum, POSITION pos)
+add_lnum(LINENUM linenum, off_t pos)
 {
 	struct linenum_info *p;
 	struct linenum_info *new;
 	struct linenum_info *nextp;
 	struct linenum_info *prevp;
-	POSITION mingap;
+	off_t mingap;
 
 	/*
 	 * Find the proper place in the list for the new one.
@@ -245,18 +245,18 @@ abort_long(void)
  * Return 0 if we can't figure it out.
  */
 LINENUM
-find_linenum(POSITION pos)
+find_linenum(off_t pos)
 {
 	struct linenum_info *p;
 	LINENUM linenum;
-	POSITION cpos;
+	off_t cpos;
 
 	if (!linenums)
 		/*
 		 * We're not using line numbers.
 		 */
 		return (0);
-	if (pos == NULL_POSITION)
+	if (pos == -1)
 		/*
 		 * Caller doesn't know what he's talking about.
 		 */
@@ -305,7 +305,7 @@ find_linenum(POSITION pos)
 				abort_long();
 				return (0);
 			}
-			if (cpos == NULL_POSITION)
+			if (cpos == -1)
 				return (0);
 			longish();
 		}
@@ -335,7 +335,7 @@ find_linenum(POSITION pos)
 				abort_long();
 				return (0);
 			}
-			if (cpos == NULL_POSITION)
+			if (cpos == -1)
 				return (0);
 			longish();
 		}
@@ -350,13 +350,13 @@ find_linenum(POSITION pos)
 
 /*
  * Find the position of a given line number.
- * Return NULL_POSITION if we can't figure it out.
+ * Return -1 if we can't figure it out.
  */
-POSITION
+off_t
 find_pos(LINENUM linenum)
 {
 	struct linenum_info *p;
-	POSITION cpos;
+	off_t cpos;
 	LINENUM clinenum;
 
 	if (linenum <= 1)
@@ -380,25 +380,25 @@ find_pos(LINENUM linenum)
 		 */
 		p = p->prev;
 		if (ch_seek(p->pos))
-			return (NULL_POSITION);
+			return (-1);
 		for (clinenum = p->line, cpos = p->pos;
 		    clinenum < linenum;
 		    clinenum++) {
 			/*
 			 * Allow a signal to abort this loop.
 			 */
-			cpos = forw_raw_line(cpos, (char **)NULL, (int *)NULL);
+			cpos = forw_raw_line(cpos, NULL, NULL);
 			if (ABORT_SIGS())
-				return (NULL_POSITION);
-			if (cpos == NULL_POSITION)
-				return (NULL_POSITION);
+				return (-1);
+			if (cpos == -1)
+				return (-1);
 		}
 	} else {
 		/*
 		 * Go backward.
 		 */
 		if (ch_seek(p->pos))
-			return (NULL_POSITION);
+			return (-1);
 		for (clinenum = p->line, cpos = p->pos;
 		    clinenum > linenum;
 		    clinenum--) {
@@ -407,9 +407,9 @@ find_pos(LINENUM linenum)
 			 */
 			cpos = back_raw_line(cpos, (char **)NULL, (int *)NULL);
 			if (ABORT_SIGS())
-				return (NULL_POSITION);
-			if (cpos == NULL_POSITION)
-				return (NULL_POSITION);
+				return (-1);
+			if (cpos == -1)
+				return (-1);
 		}
 	}
 	/*
@@ -427,15 +427,15 @@ find_pos(LINENUM linenum)
 LINENUM
 currline(int where)
 {
-	POSITION pos;
-	POSITION len;
+	off_t pos;
+	off_t len;
 	LINENUM linenum;
 
 	pos = position(where);
 	len = ch_length();
-	while (pos == NULL_POSITION && where >= 0 && where < sc_height)
+	while (pos == -1 && where >= 0 && where < sc_height)
 		pos = position(++where);
-	if (pos == NULL_POSITION)
+	if (pos == -1)
 		pos = len;
 	linenum = find_linenum(pos);
 	if (pos == len)

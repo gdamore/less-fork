@@ -103,8 +103,7 @@ set_pattern(struct pattern_info *info, char *pattern, int search_type)
 		free(info->text);
 	info->text = NULL;
 	if (pattern != NULL) {
-		info->text = ecalloc(1, strlen(pattern)+1);
-		(void) strcpy(info->text, pattern);
+		info->text = estrdup(pattern);
 	}
 	info->search_type = search_type;
 
@@ -499,7 +498,8 @@ hilite_line(off_t linepos, char *line, int line_len, int *chpos,
 	 */
 	searchp = line;
 	do {
-		create_hilites(linepos, sp-line, ep-line, chpos);
+		create_hilites(linepos, (intptr_t)sp - (intptr_t)line,
+		    (intptr_t)ep - (intptr_t)line, chpos);
 		/*
 		 * If we matched more than zero characters,
 		 * move to the first char after the string we matched.
@@ -512,7 +512,8 @@ hilite_line(off_t linepos, char *line, int line_len, int *chpos,
 		else /* end of line */
 			break;
 	} while (match_pattern(info_compiled(&search_info), search_info.text,
-	    searchp, line_end - searchp, &sp, &ep, 1, search_info.search_type));
+	    searchp, (intptr_t)line_end - (intptr_t)searchp, &sp, &ep, 1,
+	    search_info.search_type));
 }
 
 /*
@@ -1090,7 +1091,7 @@ set_filter_pattern(char *pattern, int search_type)
 	if (pattern == NULL || *pattern == '\0')
 		clear_pattern(&filter_info);
 	else
-		set_pattern(&filter_info, pattern, search_type);
+		(void) set_pattern(&filter_info, pattern, search_type);
 	screen_trashed = 1;
 }
 

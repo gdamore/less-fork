@@ -512,7 +512,7 @@ is_ansi_middle(LWCHAR ch)
 			return (1)
 
 static int
-store_char(LWCHAR ch, int a, char *rep, off_t pos)
+store_char(LWCHAR ch, char a, char *rep, off_t pos)
 {
 	int w;
 	int replen;
@@ -1046,7 +1046,7 @@ forw_raw_line(off_t curr_pos, char **linep, int *line_lenp)
 				break;
 			}
 		}
-		linebuf[n++] = c;
+		linebuf[n++] = (char)c;
 		c = ch_forw_get();
 	}
 	linebuf[n] = '\0';

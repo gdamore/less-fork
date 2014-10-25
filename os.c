@@ -92,7 +92,7 @@ get_time(void)
 {
 	time_t t;
 
-	time(&t);
+	(void) time(&t);
 	return (t);
 }
 
@@ -102,21 +102,14 @@ get_time(void)
 char *
 errno_message(char *filename)
 {
-	char *p;
-	char *m;
-	int len;
-	p = strerror(errno);
-	len = strlen(filename) + strlen(p) + 3;
-	m = ecalloc(len, sizeof (char));
-	(void) snprintf(m, len, "%s: %s", filename, p);
-	return (m);
+	return (easprintf("%s: %s", filename, strerror(errno)));
 }
 
 static off_t
 muldiv(off_t val, off_t num, off_t den)
 {
 	double v = (((double)val) * num) / den;
-	return ((off_t) (v + 0.5));
+	return ((off_t)(v + 0.5));
 }
 
 /*
@@ -143,5 +136,5 @@ percent_pos(off_t pos, int percent, long fraction)
 
 	if (perden == 0)
 		return (0);
-	return (muldiv(pos, perden, (off_t) NUM_FRAC_DENOM));
+	return (muldiv(pos, perden, (off_t)NUM_FRAC_DENOM));
 }

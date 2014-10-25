@@ -18,7 +18,6 @@ static int fd0 = 0;
 
 extern int new_file;
 extern int errmsgs;
-extern int cbufs;
 extern char *every_first_cmd;
 extern int any_display;
 extern int force_open;
@@ -141,7 +140,7 @@ close_file(void)
 	 * the same position if we edit this file again.
 	 */
 	get_scrpos(&scrpos);
-	if (scrpos.pos != NULL_POSITION) {
+	if (scrpos.pos != -1) {
 		store_pos(curr_ifile, &scrpos);
 		lastmark();
 	}

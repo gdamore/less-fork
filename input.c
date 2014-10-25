@@ -30,8 +30,8 @@ extern int quit_if_one_screen;
 extern int sigs;
 extern int ignore_eoi;
 extern int status_col;
-extern POSITION start_attnpos;
-extern POSITION end_attnpos;
+extern off_t start_attnpos;
+extern off_t end_attnpos;
 extern int hilite_search;
 extern int size_linebuf;
 
@@ -42,20 +42,20 @@ extern int size_linebuf;
  * a line.  The new position is the position of the first character
  * of the NEXT line.  The line obtained is the line starting at curr_pos.
  */
-POSITION
-forw_line(POSITION curr_pos)
+off_t
+forw_line(off_t curr_pos)
 {
-	POSITION base_pos;
-	POSITION new_pos;
+	off_t base_pos;
+	off_t new_pos;
 	register int c;
 	int blankline;
 	int endline;
 	int backchars;
 
 get_forw_line:
-	if (curr_pos == NULL_POSITION) {
+	if (curr_pos == -1) {
 		null_line();
-		return (NULL_POSITION);
+		return (-1);
 	}
 	if (hilite_search == OPT_ONPLUS || is_filtering() || status_col)
 		/*
@@ -69,7 +69,7 @@ get_forw_line:
 		    ignore_eoi ? 1 : -1);
 	if (ch_seek(curr_pos)) {
 		null_line();
-		return (NULL_POSITION);
+		return (-1);
 	}
 
 	/*
@@ -79,7 +79,7 @@ get_forw_line:
 	for (;;) {
 		if (ABORT_SIGS()) {
 			null_line();
-			return (NULL_POSITION);
+			return (-1);
 		}
 		c = ch_back_get();
 		if (c == EOI)
@@ -101,7 +101,7 @@ get_forw_line:
 	while (new_pos < curr_pos) {
 		if (ABORT_SIGS()) {
 			null_line();
-			return (NULL_POSITION);
+			return (-1);
 		}
 		c = ch_forw_get();
 		backchars = pappend(c, new_pos);
@@ -122,7 +122,7 @@ get_forw_line:
 	c = ch_forw_get();
 	if (c == EOI) {
 		null_line();
-		return (NULL_POSITION);
+		return (-1);
 	}
 	blankline = (c == '\n' || c == '\r');
 
@@ -132,7 +132,7 @@ get_forw_line:
 	for (;;) {
 		if (ABORT_SIGS()) {
 			null_line();
-			return (NULL_POSITION);
+			return (-1);
 		}
 		if (c == '\n' || c == EOI) {
 			/*
@@ -164,7 +164,7 @@ get_forw_line:
 				do {
 					if (ABORT_SIGS()) {
 						null_line();
-						return (NULL_POSITION);
+						return (-1);
 					}
 					c = ch_forw_get();
 				} while (c != '\n' && c != EOI);
@@ -203,7 +203,7 @@ get_forw_line:
 		while ((c = ch_forw_get()) == '\n' || c == '\r')
 			if (ABORT_SIGS()) {
 				null_line();
-				return (NULL_POSITION);
+				return (-1);
 			}
 		if (c != EOI)
 			(void) ch_back_get();
@@ -220,25 +220,25 @@ get_forw_line:
  * a line.  The new position is the position of the first character
  * of the PREVIOUS line.  The line obtained is the one starting at new_pos.
  */
-POSITION
-back_line(POSITION curr_pos)
+off_t
+back_line(off_t curr_pos)
 {
-	POSITION new_pos, begin_new_pos, base_pos;
+	off_t new_pos, begin_new_pos, base_pos;
 	int c;
 	int endline;
 	int backchars;
 
 get_back_line:
-	if (curr_pos == NULL_POSITION || curr_pos <= ch_zero()) {
+	if (curr_pos == -1 || curr_pos <= ch_zero()) {
 		null_line();
-		return (NULL_POSITION);
+		return (-1);
 	}
 	if (hilite_search == OPT_ONPLUS || is_filtering() || status_col)
 		prep_hilite((curr_pos < 3*size_linebuf) ?
 		    0 : curr_pos - 3*size_linebuf, curr_pos, -1);
 	if (ch_seek(curr_pos-1)) {
 		null_line();
-		return (NULL_POSITION);
+		return (-1);
 	}
 
 	if (squeeze) {
@@ -259,11 +259,11 @@ get_back_line:
 			while ((c = ch_back_get()) == '\n' || c == '\r')
 				if (ABORT_SIGS()) {
 					null_line();
-					return (NULL_POSITION);
+					return (-1);
 				}
 			if (c == EOI) {
 				null_line();
-				return (NULL_POSITION);
+				return (-1);
 			}
 			(void) ch_forw_get();
 		}
@@ -275,7 +275,7 @@ get_back_line:
 	for (;;) {
 		if (ABORT_SIGS()) {
 			null_line();
-			return (NULL_POSITION);
+			return (-1);
 		}
 		c = ch_back_get();
 		if (c == '\n') {
@@ -309,7 +309,7 @@ get_back_line:
 	new_pos = base_pos;
 	if (ch_seek(new_pos)) {
 		null_line();
-		return (NULL_POSITION);
+		return (-1);
 	}
 	endline = FALSE;
 	prewind();
@@ -322,7 +322,7 @@ loop:
 		c = ch_forw_get();
 		if (c == EOI || ABORT_SIGS()) {
 			null_line();
-			return (NULL_POSITION);
+			return (-1);
 		}
 		new_pos++;
 		if (c == '\n') {
@@ -378,11 +378,11 @@ loop:
  * Set attnpos.
  */
 void
-set_attnpos(POSITION pos)
+set_attnpos(off_t pos)
 {
 	int c;
 
-	if (pos != NULL_POSITION) {
+	if (pos != -1) {
 		if (ch_seek(pos))
 			return;
 		for (;;) {

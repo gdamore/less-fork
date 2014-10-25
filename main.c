@@ -280,7 +280,7 @@ x_vasprintf(char **p, const char *fmt, va_list ap)
 {
 	size_t sz;
 
-	sz = vsnprintf(NULL, 0, fmt, ap);
+	sz = vsnprintf(NULL, 0, fmt, ap) + 1;
 	if ((sz != 0) && ((*p = malloc(sz)) == NULL)) {
 		return (-1);
 	}
@@ -307,6 +307,16 @@ easprintf(const char *fmt, ...)
 		/*NOTREACHED*/
 	}
 	return (p);
+}
+
+char *
+estrdup(const char *str)
+{
+	char *n = strdup(str);
+	if (n == NULL && str != NULL) {
+		error("Cannot allocate memory", NULL_PARG);
+	}
+	return (n);
 }
 
 /*
