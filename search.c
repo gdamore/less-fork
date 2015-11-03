@@ -401,10 +401,8 @@ is_hilited(off_t pos, off_t epos, int nohide, int *p_matches)
 /*
  * Add a new hilite to a hilite list.
  */
-	static void
-add_hilite(anchor, hl)
-	struct hilite *anchor;
-	struct hilite *hl;
+static void
+add_hilite(struct hilite *anchor, struct hilite *hl)
 {
 	struct hilite *ihl;
 
