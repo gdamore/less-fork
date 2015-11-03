@@ -82,14 +82,19 @@ flush(void)
 {
 	int n;
 	int fd;
+	ssize_t nwritten;
 
 	n = (intptr_t)ob - (intptr_t)obuf;
 	if (n == 0)
 		return;
 
-	fd = (any_display) ? 1 : 2;
-	if (write(fd, obuf, n) != n)
+	fd = (any_display) ? STDOUT_FILENO : STDERR_FILENO;
+	nwritten = write(fd, obuf, n);
+	if (nwritten != n) {
+		if (nwritten == -1)
+			quit(QUIT_ERROR);
 		screen_trashed = 1;
+	}
 	ob = obuf;
 }
 

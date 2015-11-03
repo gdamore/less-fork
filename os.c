@@ -25,20 +25,13 @@
 
 #include "less.h"
 #include <signal.h>
-#include <setjmp.h>
 #include <time.h>
 #include <errno.h>
-
-int reading;
-
-static jmp_buf read_label;
 
 extern volatile sig_atomic_t sigs;
 
 /*
  * Like read() system call, but is deliberately interruptible.
- * A call to intread() from a signal handler will interrupt
- * any pending iread().
  */
 int
 iread(int fd, unsigned char *buf, unsigned int len)
@@ -47,41 +40,20 @@ iread(int fd, unsigned char *buf, unsigned int len)
 	sigset_t mask;
 
 start:
-	if (_setjmp(read_label)) {
-		/*
-		 * We jumped here from intread.
-		 */
-		reading = 0;
-		sigemptyset(&mask);
-		sigprocmask(SIG_SETMASK, &mask, NULL);
-		return (READ_INTR);
-	}
-
 	flush();
-	reading = 1;
 	n = read(fd, buf, len);
-	reading = 0;
 	if (n < 0) {
 		/*
 		 * Certain values of errno indicate we should just retry the
 		 * read.
 		 */
 		if (errno == EINTR)
-			goto start;
+			return (READ_INTR);
 		if (errno == EAGAIN)
 			goto start;
 		return (-1);
 	}
 	return (n);
-}
-
-/*
- * Interrupt a pending iread().
- */
-void
-intread(void)
-{
-	_longjmp(read_label, 1);
 }
 
 /*

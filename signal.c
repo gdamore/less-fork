@@ -17,8 +17,6 @@
  * A signal usually merely causes a bit to be set in the "signals" word.
  * At some convenient time, the mainline code checks to see if any
  * signals need processing by calling psignal().
- * If we happen to be reading from a file [in iread()] at the time
- * the signal is received, we call intread to interrupt the iread.
  */
 
 #include "less.h"
@@ -33,7 +31,6 @@ extern int sc_width, sc_height;
 extern int screen_trashed;
 extern int linenums;
 extern int wscroll;
-extern int reading;
 extern int quit_on_intr;
 extern long jump_sline_fraction;
 
@@ -44,11 +41,8 @@ extern long jump_sline_fraction;
 static void
 u_interrupt(int type)
 {
-	ring_bell();
 	LSIGNAL(SIGINT, u_interrupt);
 	sigs |= S_INTERRUPT;
-	if (reading)
-		intread(); /* May longjmp */
 }
 
 /*
@@ -60,8 +54,6 @@ stop(int type)
 {
 	LSIGNAL(SIGTSTP, stop);
 	sigs |= S_STOP;
-	if (reading)
-		intread();
 }
 
 /*
@@ -73,8 +65,6 @@ sigwinch(int type)
 {
 	LSIGNAL(SIGWINCH, sigwinch);
 	sigs |= S_WINCH;
-	if (reading)
-		intread();
 }
 
 /*
@@ -155,7 +145,24 @@ psignals(void)
 		}
 	}
 	if (tsignals & S_INTERRUPT) {
+		ring_bell();
 		if (quit_on_intr)
 			quit(QUIT_INTERRUPT);
 	}
+}
+
+/*
+ * Custom version of signal() that causes syscalls to be interrupted.
+ */
+void *
+lsignal(int s, void (*a)(int))
+{
+	struct sigaction sa, osa;
+
+	sa.sa_handler = a;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;                /* don't restart system calls */
+	if (sigaction(s, &sa, &osa) != 0)
+		return (SIG_ERR);
+	return (osa.sa_handler);
 }

@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <libgen.h>
+#include <signal.h>
 
 /*
  * Simple lowercase test which can be used during option processing
@@ -197,7 +198,7 @@ struct textlist
 #define	ESC		CONTROL('[')
 #define	CSI		((unsigned char)'\233')
 
-#define	LSIGNAL(sig, func)	signal(sig, func)
+#define	LSIGNAL(sig, func)	lsignal(sig, func)
 
 #define	S_INTERRUPT	01
 #define	S_STOP		02
