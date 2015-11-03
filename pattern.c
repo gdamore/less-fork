@@ -128,6 +128,11 @@ match_pattern(void *pattern, char *tpattern, char *line, int line_len,
 	} else {
 		regmatch_t rm;
 		int flags = (notbol) ? REG_NOTBOL : 0;
+#ifdef	REG_STARTEND
+		flags |= REG_STARTEND;
+		rm.rm_so = 0;
+		rm.rm_eo = line_len;
+#endif
 		matched = !regexec(spattern, line, 1, &rm, flags);
 		if (matched) {
 			*sp = line + rm.rm_so;
