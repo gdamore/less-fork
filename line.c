@@ -1094,8 +1094,6 @@ back_raw_line(off_t curr_pos, char **linep, int *line_lenp)
 		}
 		if (n <= 0) {
 			int old_size_linebuf = size_linebuf;
-			char *fm;
-			char *to;
 			if (expand_linebuf()) {
 				/*
 				 * Overflowed the input buffer.
@@ -1107,11 +1105,8 @@ back_raw_line(off_t curr_pos, char **linep, int *line_lenp)
 			/*
 			 * Shift the data to the end of the new linebuf.
 			 */
-			for (fm = linebuf + old_size_linebuf - 1,
-			    to = linebuf + size_linebuf - 1;
-			    fm >= linebuf;  fm--, to--)
-				*to = *fm;
 			n = size_linebuf - old_size_linebuf;
+			memmove(linebuf + n, linebuf, old_size_linebuf);
 		}
 		linebuf[--n] = c;
 	}
