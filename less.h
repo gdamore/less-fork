@@ -234,6 +234,6 @@ struct textlist
 #include "funcs.h"
 
 /* Functions not included in funcs.h */
-void postoa();
-void linenumtoa();
-void inttoa();
+void postoa(off_t, char *);
+void linenumtoa(LINENUM, char *);
+void inttoa(int, char *);
