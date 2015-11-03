@@ -91,6 +91,9 @@ changes in the following way:
    This requires vasprintf(), but all modern UNIXes have it. (Even Linux!)
    This is the only non-POSIX interface consumed that I know of.
 
+ * (from OpenBSD folks, thanks!) less uses basic REs per POSIX when running
+   as "more"
+
 ---- >> TODO << ----
 
  1. it seems silly that less reinvents getopt, consider rewhacking this to

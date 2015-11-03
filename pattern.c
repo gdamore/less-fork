@@ -19,6 +19,7 @@
 #include "pattern.h"
 
 extern int caseless;
+extern int less_is_more;
 
 /*
  * Compile a search pattern, for future use by match_pattern.
@@ -31,7 +32,7 @@ compile_pattern2(char *pattern, int search_type, regex_t **comp_pattern)
 	if (search_type & SRCH_NO_REGEX)
 		return (0);
 	comp = ecalloc(1, sizeof (regex_t));
-	if (regcomp(comp, pattern, REGCOMP_FLAG)) {
+	if (regcomp(comp, pattern, less_is_more ? 0 : REGCOMP_FLAG)) {
 		free(comp);
 		error("Invalid pattern", NULL_PARG);
 		return (-1);
