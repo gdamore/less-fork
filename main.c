@@ -279,12 +279,18 @@ static int
 x_vasprintf(char **p, const char *fmt, va_list ap)
 {
 	size_t sz;
+	va_list copy;
+	int rv
 
+	va_copy(copy, ap);
 	sz = vsnprintf(NULL, 0, fmt, ap) + 1;
 	if ((sz != 0) && ((*p = malloc(sz)) == NULL)) {
+		va_end(copy);
 		return (-1);
 	}
-	return (vsnprintf(*p, sz, fmt, ap));
+	rv = vsnprintf(*p, sz, fmt, ap);
+	va_end(copy);
+	return (rv);
 }
 #else
 #define	x_vasprintf	vasprintf
