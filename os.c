@@ -33,7 +33,7 @@ int reading;
 
 static jmp_buf read_label;
 
-extern int sigs;
+extern volatile sig_atomic_t sigs;
 
 /*
  * Like read() system call, but is deliberately interruptible.

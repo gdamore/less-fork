@@ -27,7 +27,7 @@
 /*
  * "sigs" contains bits indicating signals which need to be processed.
  */
-int sigs;
+volatile sig_atomic_t sigs;
 
 extern int sc_width, sc_height;
 extern int screen_trashed;

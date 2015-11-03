@@ -21,7 +21,7 @@ static int total;
 static int curseq;
 
 extern int linenums;
-extern int sigs;
+extern volatile sig_atomic_t sigs;
 
 enum tag_result {
 	TAG_FOUND,
