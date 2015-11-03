@@ -63,7 +63,7 @@ struct taglist {
 	struct tag *tl_first;
 	struct tag *tl_last;
 };
-#define	TAG_END  NULL
+#define	TAG_END  ((struct tag *)&taglist)
 static struct taglist taglist = { TAG_END, TAG_END };
 struct tag {
 	struct tag *next, *prev; /* List links */
