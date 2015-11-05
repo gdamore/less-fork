@@ -1394,6 +1394,13 @@ again:
 			 */
 			if (ch_getflags() & CH_HELPFILE)
 				break;
+			if (ungot != NULL || unget_end) {
+				error(less_is_more
+				    ? "Invalid option -p h"
+				    : "Invalid option ++h",
+				    NULL_PARG);
+				break;
+			}
 			cmd_exec();
 			save_hshift = hshift;
 			hshift = 0;
