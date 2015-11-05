@@ -721,12 +721,7 @@ bad_file(char *filename)
 
 	filename = shell_unquote(filename);
 	if (!force_open && is_dir(filename)) {
-		static char is_a_dir[] = " is a directory";
-
-		m = ecalloc(strlen(filename) + sizeof (is_a_dir),
-		    sizeof (char));
-		strcpy(m, filename);
-		strcat(m, is_a_dir);
+		m = easprintf("%s is a directory", filename);
 	} else {
 		int r;
 		struct stat statbuf;
@@ -737,12 +732,8 @@ bad_file(char *filename)
 		} else if (force_open) {
 			m = NULL;
 		} else if (!S_ISREG(statbuf.st_mode)) {
-			static char not_reg[] =
-			    " is not a regular file (use -f to see it)";
-			m = ecalloc(strlen(filename) + sizeof (not_reg),
-			    sizeof (char));
-			(void) strcpy(m, filename);
-			(void) strcat(m, not_reg);
+			m = easprintf("%s is not a regular file (use -f to "
+			    "see it)", filename);
 		}
 	}
 	free(filename);
