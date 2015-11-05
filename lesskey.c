@@ -230,12 +230,15 @@ char *
 mkpathname(char *dirname, char *filename)
 {
 	char *pathname;
+	size_t len;
 
-	pathname = calloc(strlen(dirname) + strlen(filename) + 2,
-	    sizeof (char));
-	(void) strcpy(pathname, dirname);
-	(void) strcat(pathname, "/");
-	(void) strcat(pathname, filename);
+	len = strlen(dirname) + strlen(filename) + 2;
+	pathname = calloc(1, len);
+	if (pathname == NULL) {
+		fprintf(stderr, "mkpathname: out of memory\n");
+		exit(1);
+	}
+	(void) snprintf(pathname, len, "%s/%s", dirname, filename);
 	return (pathname);
 }
 
