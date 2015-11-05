@@ -23,10 +23,12 @@ PROGS=		less lesskey more mkhelp
 
 # STD can be default, SUSv1, SUSv2, SUSv3, SUSv4, MACOS, or ILLUMOS
 # default works for most platforms (but not illumos!)
-STD =
+STD =		default
 
-DEBUG =		yes
-OPTIMIZE =	yes
+CFLAGS =	-I. -DSYSDIR= -DSYSNAME= -DRELEASE= -DVERSION=
+
+DEBUG =		no
+OPTIMIZE =	no
 
 LF64 =		-D _FILE_OFFSET_BITS=64
 
@@ -125,7 +127,7 @@ mkhelp:		$(mkhelp_OBJS) std
 more:		less
 		$(RM) -f $@
 		$(LN) -s less $@
-		
+
 clobber:	clean
 		$(RM) $(PROGS) $(PROGS:%=%.lint) help.c morehelp.c
 
