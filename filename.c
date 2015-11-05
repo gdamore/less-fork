@@ -160,7 +160,7 @@ shell_quote(const char *s)
 				/*
 				 * Add the escape char.
 				 */
-				(void) strcpy(r, esc);
+				(void) strlcpy(r, esc, newstr + len - p);
 				r += esclen;
 			}
 			*r++ = *s++;
@@ -282,7 +282,8 @@ fexpand(char *s)
 				if (ifile == NULL_IFILE) {
 					*to++ = *fr;
 				} else {
-					(void) strcpy(to, get_filename(ifile));
+					(void) strlcpy(to, get_filename(ifile),
+					    e + n + 1 - to);
 					to += strlen(to);
 				}
 			}
@@ -562,7 +563,7 @@ expand_pct_s(const char *fmt, ...)
 				free(r);
 				return (NULL);
 			}
-			(void) strcpy(d, f[n++]);
+			(void) strlcpy(d, f[n++], r + len - d);
 			fmt++;
 			d += strlen(d);
 			break;

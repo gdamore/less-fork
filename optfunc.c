@@ -465,17 +465,19 @@ opt_x(int type, char *s)
 		tabdefault = tabstops[ntabstops-1] - tabstops[ntabstops-2];
 		break;
 	case QUERY:
-		(void) strcpy(msg, "Tab stops ");
+		(void) strlcpy(msg, "Tab stops ", sizeof(msg));
 		if (ntabstops > 2) {
 			for (i = 1;  i < ntabstops;  i++) {
 				if (i > 1)
-					(void) strcat(msg, ",");
-				(void) sprintf(msg+strlen(msg), "%d",
-				    tabstops[i]);
+					strlcat(msg, ",", sizeof(msg));
+				(void) snprintf(msg+strlen(msg),
+				    sizeof(msg)-strlen(msg), "%d", tabstops[i]);
 			}
-			(void) sprintf(msg+strlen(msg), " and then ");
+			(void) snprintf(msg+strlen(msg), sizeof(msg)-strlen(msg),
+			    " and then ");
 		}
-		(void) sprintf(msg+strlen(msg), "every %d spaces", tabdefault);
+		(void) snprintf(msg+strlen(msg), sizeof(msg)-strlen(msg),
+		    "every %d spaces", tabdefault);
 		p.p_string = msg;
 		error("%s", &p);
 		break;
