@@ -251,8 +251,8 @@ save(const char *s)
 {
 	char *p;
 
-	p = ecalloc(strlen(s)+1, sizeof (char));
-	(void) strcpy(p, s);
+	if ((p = estrdup(s)) == NULL)
+		quit(QUIT_ERROR);
 	return (p);
 }
 
