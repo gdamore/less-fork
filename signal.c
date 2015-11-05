@@ -105,7 +105,7 @@ init_signals(int on)
 void
 psignals(void)
 {
-	register int tsignals;
+	int tsignals;
 
 	if ((tsignals = sigs) == 0)
 		return;
