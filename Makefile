@@ -10,7 +10,7 @@
 #
 
 #
-# Copyright 2014 Garrett D'Amore <garrett@damore.org>
+# Copyright 2015 Garrett D'Amore <garrett@damore.org>
 #
 
 #
@@ -21,7 +21,7 @@
 
 PROGS=		less lesskey more mkhelp
 
-# STD can be default, SUSv1, SUSv2, SUSv3, SUSv4, MACOS, or ILLUMOS
+# STD can be default, SUSv2, SUSv3, SUSv4, MACOS, or ILLUMOS
 # default works for most platforms (but not illumos!)
 STD =
 
@@ -44,11 +44,6 @@ DEFS_SUSv2 =	-D _XOPEN_SOURCE=500
 CC_SUSv2 =	c89
 OPT_SUSv2 =
 DBG_SUSv2 =
-
-DEFS_SUSv1 =	-D _XOPEN_SOURCE -D _XOPEN_SOURCE_EXTENDED=1
-CC_SUSv1 =	c89
-OPT_SUSv1 =
-DBG_SUSv1 =
 
 DEFS_MACOS =	-D HAVE_VASPRINTF
 CC_MACOS =	clang

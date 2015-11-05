@@ -8,7 +8,7 @@
  */
 /*
  * Modified for use with illumos.
- * Copyright 2014 Garrett D'Amore <garrett@damore.org>
+ * Copyright 2015 Garrett D'Amore <garrett@damore.org>
  */
 
 /*
@@ -63,8 +63,10 @@ stop(int type)
 void
 sigwinch(int type)
 {
+#if defined(SIGWINCH)
 	LSIGNAL(SIGWINCH, sigwinch);
 	sigs |= S_WINCH;
+#endif
 }
 
 /*
@@ -79,16 +81,20 @@ init_signals(int on)
 		 */
 		(void) LSIGNAL(SIGINT, u_interrupt);
 		(void) LSIGNAL(SIGTSTP, stop);
-		(void) LSIGNAL(SIGWINCH, sigwinch);
 		(void) LSIGNAL(SIGQUIT, SIG_IGN);
+#if defined(SIGWINCH)
+		(void) LSIGNAL(SIGWINCH, sigwinch);
+#endif
 	} else {
 		/*
 		 * Restore signals to defaults.
 		 */
 		(void) LSIGNAL(SIGINT, SIG_DFL);
 		(void) LSIGNAL(SIGTSTP, SIG_DFL);
-		(void) LSIGNAL(SIGWINCH, SIG_IGN);
 		(void) LSIGNAL(SIGQUIT, SIG_DFL);
+#if defined(SIGWINCH)
+		(void) LSIGNAL(SIGWINCH, SIG_IGN);
+#endif
 	}
 }
 
@@ -163,6 +169,6 @@ lsignal(int s, void (*a)(int))
 	sigemptyset(&sa.sa_mask);
 	sa.sa_flags = 0;                /* don't restart system calls */
 	if (sigaction(s, &sa, &osa) != 0)
-		return (SIG_ERR);
-	return (osa.sa_handler);
+		return ((void *)SIG_ERR);
+	return ((void *)osa.sa_handler);
 }

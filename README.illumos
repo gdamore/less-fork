@@ -106,5 +106,4 @@ changes in the following way:
 
  3. Internationalize the program using gettext().
 
- 4. Signal handling should be updated to use sigaction.  Also, note that SIGWINCH
-    is not guaranteed to be everwhere.
+ 4. Signal handling should be updated to use sigaction.

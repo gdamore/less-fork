@@ -280,7 +280,7 @@ x_vasprintf(char **p, const char *fmt, va_list ap)
 {
 	size_t sz;
 	va_list copy;
-	int rv
+	int rv;
 
 	va_copy(copy, ap);
 	sz = vsnprintf(NULL, 0, fmt, ap) + 1;
