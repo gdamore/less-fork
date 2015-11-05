@@ -1212,7 +1212,9 @@ histfile_name(void)
 		return (save(name));
 	}
 
-	/* Otherwise, file is in $HOME. */
+	/* Otherwise, file is in $HOME if enabled. */
+	if (*LESSHISTFILE == '\0')
+		return (NULL);
 	home = lgetenv("HOME");
 	if (home == NULL || *home == '\0') {
 		return (NULL);
