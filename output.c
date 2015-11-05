@@ -134,7 +134,7 @@ putstr(const char *s)
  */
 #define	TYPE_TO_A_FUNC(funcname, type)		\
 void						\
-funcname(type num, char *buf)			\
+funcname(type num, char *buf, size_t len)	\
 {						\
 	int neg = (num < 0);			\
 	char tbuf[INT_STRLEN_BOUND(num)+2];	\
@@ -147,7 +147,7 @@ funcname(type num, char *buf)			\
 	} while ((num /= 10) != 0);		\
 	if (neg)				\
 		 *--s = '-';			\
-	(void) strcpy(buf, s);			\
+	(void) strlcpy(buf, s, len);		\
 }
 
 TYPE_TO_A_FUNC(postoa, off_t)
@@ -162,7 +162,7 @@ iprint_int(int num)
 {
 	char buf[INT_STRLEN_BOUND(num)];
 
-	inttoa(num, buf);
+	inttoa(num, buf, sizeof (buf));
 	putstr(buf);
 	return (strlen(buf));
 }
@@ -175,7 +175,7 @@ iprint_linenum(LINENUM num)
 {
 	char buf[INT_STRLEN_BOUND(num)];
 
-	linenumtoa(num, buf);
+	linenumtoa(num, buf, sizeof (buf));
 	putstr(buf);
 	return (strlen(buf));
 }

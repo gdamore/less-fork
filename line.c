@@ -182,7 +182,7 @@ plinenum(off_t pos)
 		char buf[INT_STRLEN_BOUND(pos) + 2];
 		int n;
 
-		linenumtoa(linenum, buf);
+		linenumtoa(linenum, buf, sizeof (buf));
 		n = strlen(buf);
 		if (n < MIN_LINENUM_WIDTH)
 			n = MIN_LINENUM_WIDTH;
