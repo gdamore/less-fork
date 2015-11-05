@@ -25,7 +25,6 @@
 
 #include "less.h"
 #include <signal.h>
-#include <time.h>
 #include <errno.h>
 
 extern volatile sig_atomic_t sigs;
@@ -53,18 +52,6 @@ start:
 		return (-1);
 	}
 	return (n);
-}
-
-/*
- * Return the current time.
- */
-long
-get_time(void)
-{
-	time_t t;
-
-	(void) time(&t);
-	return (t);
 }
 
 /*
