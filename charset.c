@@ -424,7 +424,7 @@ prchar(LWCHAR c)
 	if ((c < 128 || !utf_mode) && !control_char(c))
 		(void) snprintf(buf, sizeof (buf), "%c", (int)c);
 	else if (c == ESC)
-		strcpy(buf, "ESC");
+		(void) strlcpy(buf, "ESC", sizeof (buf));
 	else if (c < 128 && !control_char(c ^ 0100))
 		(void) snprintf(buf, sizeof (buf), "^%c", (int)(c ^ 0100));
 	else
@@ -441,7 +441,7 @@ prutfchar(LWCHAR ch)
 	static char buf[32];
 
 	if (ch == ESC) {
-		(void) strcpy(buf, "ESC");
+		(void) strlcpy(buf, "ESC", sizeof (buf));
 	} else if (ch < 128 && control_char(ch)) {
 		if (!control_char(ch ^ 0100))
 			(void) snprintf(buf, sizeof (buf), "^%c",

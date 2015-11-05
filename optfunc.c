@@ -146,7 +146,8 @@ opt_j(int type, char *s)
 			parg.p_int =  jump_sline;
 			error("Position target at screen line %d", &parg);
 		} else {
-			(void) sprintf(buf, ".%06d", jump_sline_fraction);
+			(void) snprintf(buf, sizeof (buf), ".%06d",
+			    jump_sline_fraction);
 			len = strlen(buf);
 			while (len > 2 && buf[len-1] == '0')
 				len--;
@@ -203,7 +204,8 @@ opt_shift(int type, char *s)
 			error("Horizontal shift %d columns", &parg);
 		} else {
 
-			(void) sprintf(buf, ".%06d", shift_count_fraction);
+			(void) snprintf(buf, sizeof (buf), ".%06d",
+			    shift_count_fraction);
 			len = strlen(buf);
 			while (len > 2 && buf[len-1] == '0')
 				len--;

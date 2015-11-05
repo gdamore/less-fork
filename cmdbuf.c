@@ -652,7 +652,7 @@ cmd_updown(int action)
 				s = "";
 			cmd_home();
 			clear_eol();
-			strcpy(cmdbuf, s);
+			strlcpy(cmdbuf, s, sizeof (cmdbuf));
 			for (cp = cmdbuf; *cp != '\0'; )
 				cmd_right();
 			return (CC_OK);

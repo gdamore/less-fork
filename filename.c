@@ -405,7 +405,7 @@ readfd(FILE *fd)
 			len *= 2;
 			*p = '\0';
 			p = ecalloc(len, sizeof (char));
-			strcpy(p, buf);
+			strlcpy(p, buf, len);
 			free(buf);
 			buf = p;
 			p = buf + strlen(buf);
@@ -503,9 +503,9 @@ lglob(char *filename)
 		qfilename = shell_quote(p);
 		if (qfilename != NULL) {
 			if (i != 0) {
-				(void) strcat(gfilename, " ");
+				(void) strlcat(gfilename, " ", length);
 			}
-			(void) strcat(gfilename, qfilename);
+			(void) strlcat(gfilename, qfilename, length);
 			free(qfilename);
 		}
 	}
