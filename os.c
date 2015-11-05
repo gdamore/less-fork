@@ -37,7 +37,6 @@ int
 iread(int fd, unsigned char *buf, unsigned int len)
 {
 	int n;
-	sigset_t mask;
 
 start:
 	flush();
