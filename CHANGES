@@ -2,10 +2,11 @@
 I have substantially "ported" less, starting with version 458.  I've made
 changes in the following way:
 
- * COPYING file removed to and LICENSE file updated reflect that illumos
+ * COPYING file removed and LICENSE file updated reflect that we
    redistributes under the LESS license rather than GPLv3.  (FreeBSD uses
-   a similar precedent.)  Only the first line was added to LICENSE.  All
-   of my changes are distributed exclusively under the LESS License.
+   a similar precedent.)
+
+ * NEWS file removed, 
 
  * configure was run to generate the defines.h file, which should be used.
    The options given were ./configure --prefix=/usr --with-regex=posix
@@ -35,9 +36,9 @@ changes in the following way:
    fully featured.  (It was a compile-time option.)  Download official less
    if you need restricted mode. (Hint: zones or chroot are better solutions!)
 
- *  The following man pages were copied from OpenBSD into
-    usr/src/man/man1:  less.1, lesskey.1, they were subsequently customized
-    for illumos.
+ * The following man pages were copied from OpenBSD into
+   usr/src/man/man1:  less.1, lesskey.1, they were subsequently customized
+   for illumos.
 
  * mkhelp.c was rewhacked to emit more readable fixed strings instead of
    character arrays.
@@ -89,10 +90,14 @@ changes in the following way:
 
  * some constructs that alloc then sprintf were replaced with easprintf.
    This requires vasprintf(), but all modern UNIXes have it. (Even Linux!)
-   This is the only non-POSIX interface consumed that I know of.
 
  * (from OpenBSD folks, thanks!) less uses basic REs per POSIX when running
    as "more"
+
+ * use safer snprintf, strlcpy, strlcat (and provide safe versions if missing)
+   instead of sprintf, strcpy, strcat.  Again, courtesy of OpenBSD.
+
+ * various minor bug fixes, from various parties.
 
 ---- >> TODO << ----
 
@@ -105,3 +110,6 @@ changes in the following way:
     to other encodings than just UTF-8.
 
  3. Internationalize the program using gettext().
+
+ 4. Allow the help file to come from an external, locale sensitive, location.
+    This helps with internationalization.
