@@ -31,7 +31,7 @@ distribute our changes.
 ## About
 
 This is a version of LESS, a file viewer, that has been modified heavily.
-It is based on the Mark Nudelman's original program, Less v458.  The original
+It is based on Mark Nudelman's original program, Less v458.  The original
 less is located at
 [http://www.greenwoodsoftware.com/less/](http://www.greenwoodsoftware.com/less/)
 
@@ -40,7 +40,7 @@ older systems and non-POSIX platforms might lack.  In many cases these newer
 APIs have improved safety or performance.
 
 It is also modified to substantially improve its compliance with the POSIX
-specifications when running as `more`.  I believe that when called as `more`,
+specifications when running as `more`.  We believe that when called as `more`,
 less fully implements both Issue 6 and Issue 7 specified behaviors of the more
 utility.
 
@@ -52,7 +52,7 @@ An incomplete list of changes is located in the file [CHANGES](CHANGES).
 
 ## Acknowledgements
 
-Mark Nudelman created the original Less program, which I have used for
+Mark Nudelman created the original Less program, which we have used for
 many years on many platforms.
 
 The OpenBSD team has contributed a number of improvements, mostly
