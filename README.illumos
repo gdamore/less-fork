@@ -105,5 +105,3 @@ changes in the following way:
     to other encodings than just UTF-8.
 
  3. Internationalize the program using gettext().
-
- 4. Signal handling should be updated to use sigaction.
