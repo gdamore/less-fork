@@ -41,7 +41,7 @@ extern long jump_sline_fraction;
 static void
 u_interrupt(int type)
 {
-	LSIGNAL(SIGINT, u_interrupt);
+	lsignal(SIGINT, u_interrupt);
 	sigs |= S_INTERRUPT;
 }
 
@@ -52,7 +52,7 @@ u_interrupt(int type)
 static void
 stop(int type)
 {
-	LSIGNAL(SIGTSTP, stop);
+	lsignal(SIGTSTP, stop);
 	sigs |= S_STOP;
 }
 
@@ -64,7 +64,7 @@ void
 sigwinch(int type)
 {
 #if defined(SIGWINCH)
-	LSIGNAL(SIGWINCH, sigwinch);
+	lsignal(SIGWINCH, sigwinch);
 	sigs |= S_WINCH;
 #endif
 }
@@ -79,21 +79,21 @@ init_signals(int on)
 		/*
 		 * Set signal handlers.
 		 */
-		(void) LSIGNAL(SIGINT, u_interrupt);
-		(void) LSIGNAL(SIGTSTP, stop);
-		(void) LSIGNAL(SIGQUIT, SIG_IGN);
+		(void) lsignal(SIGINT, u_interrupt);
+		(void) lsignal(SIGTSTP, stop);
+		(void) lsignal(SIGQUIT, SIG_IGN);
 #if defined(SIGWINCH)
-		(void) LSIGNAL(SIGWINCH, sigwinch);
+		(void) lsignal(SIGWINCH, sigwinch);
 #endif
 	} else {
 		/*
 		 * Restore signals to defaults.
 		 */
-		(void) LSIGNAL(SIGINT, SIG_DFL);
-		(void) LSIGNAL(SIGTSTP, SIG_DFL);
-		(void) LSIGNAL(SIGQUIT, SIG_DFL);
+		(void) lsignal(SIGINT, SIG_DFL);
+		(void) lsignal(SIGTSTP, SIG_DFL);
+		(void) lsignal(SIGQUIT, SIG_DFL);
 #if defined(SIGWINCH)
-		(void) LSIGNAL(SIGWINCH, SIG_IGN);
+		(void) lsignal(SIGWINCH, SIG_IGN);
 #endif
 	}
 }
@@ -115,13 +115,13 @@ psignals(void)
 		/*
 		 * Clean up the terminal.
 		 */
-		LSIGNAL(SIGTTOU, SIG_IGN);
+		lsignal(SIGTTOU, SIG_IGN);
 		clear_bot();
 		deinit();
 		flush();
 		raw_mode(0);
-		LSIGNAL(SIGTTOU, SIG_DFL);
-		LSIGNAL(SIGTSTP, SIG_DFL);
+		lsignal(SIGTTOU, SIG_DFL);
+		lsignal(SIGTSTP, SIG_DFL);
 		kill(getpid(), SIGTSTP);
 		/*
 		 * ... Bye bye. ...
@@ -129,7 +129,7 @@ psignals(void)
 		 * Reset the terminal and arrange to repaint the
 		 * screen when we get back to the main command loop.
 		 */
-		LSIGNAL(SIGTSTP, stop);
+		lsignal(SIGTSTP, stop);
 		raw_mode(1);
 		init();
 		screen_trashed = 1;
