@@ -72,6 +72,8 @@ LN=		ln
 SED=		sed
 CSTYLE=		cstyle -cPp
 
+compat_OBJS =	strlcat.o strlcpy.o
+
 less_OBJS =	main.o screen.o brac.o ch.o charset.o cmdbuf.o		\
 		command.o cvt.o decode.o edit.o filename.o forwback.o	\
 		help.o ifile.o input.o jump.o line.o linenum.o		\
@@ -99,7 +101,7 @@ DEFS 	=	-D SYSNAME=\"$(SYSNAME)\" \
 		-D VERSION=\"$(PATCHID)\" \
 		-D SYSDIR=\"/etc\"
 
-OBJS=		$(less_OBJS) $(lesskey_OBJS)
+OBJS=		$(less_OBJS) $(lesskey_OBJS) $(compat_OBJS)
 
 OPT_yes =	$(OPT_$(STD))
 DBG_yes =	$(DBG_$(STD))
@@ -109,8 +111,8 @@ OPTFLAG =	$(OPT_$(OPTIMIZE))
 
 all:		$(PROGS)
 
-less:	$(less_OBJS) std
-	$(CC) $(DEFS) $(INCS) $(less_OBJS) -o $@ -lcurses
+less:	$(less_OBJS) $(compat_OBJS) std
+	$(CC) $(DEFS) $(INCS) $(less_OBJS) $(compat_OBJS) -o $@ -lcurses
 
 lesskey:	$(lesskey_OBJS) std
 		$(CC) $(DEFS) $(INCS) $(lesskey_OBJS) -o $@
