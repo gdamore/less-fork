@@ -123,7 +123,7 @@ mkhelp:		$(mkhelp_OBJS) std
 more:		less
 		$(RM) -f $@
 		$(LN) -s less $@
-		
+
 clobber:	clean
 		$(RM) $(PROGS) $(PROGS:%=%.lint) help.c morehelp.c
 
@@ -157,7 +157,7 @@ more.check:
 check:		$(PROGS:%=%.check)
 
 %.o: %.c std
-		$(CC) $(DEFS) $(INCS) -c -o $@ $< 
+		$(CC) $(DEFS) $(INCS) $(CFLAGS) -c -o $@ $<
 
 help.c:		less.hlp mkhelp
 		./mkhelp < less.hlp > $@
