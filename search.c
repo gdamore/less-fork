@@ -92,10 +92,12 @@ is_ucase(char *str)
 static int
 set_pattern(struct pattern_info *info, char *pattern, int search_type)
 {
-	if (pattern == NULL)
+	if (pattern == NULL) {
+		uncompile_pattern(&info->compiled);
 		info->compiled = NULL;
-	else if (compile_pattern(pattern, search_type, &info->compiled) < 0)
+	} else if (compile_pattern(pattern, search_type, &info->compiled) < 0) {
 		return (-1);
+	}
 	/* Pattern compiled successfully; save the text too. */
 	if (info->text != NULL)
 		free(info->text);

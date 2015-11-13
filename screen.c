@@ -398,9 +398,9 @@ get_term(void)
 	if (*sc_move == '\0') {
 		t2 = "";
 	} else {
-		t2 = estrdup(tparm(sc_move, 0, 0, 0, 0, 0, 0, 0, 0, 0));
+		t2 = tparm(sc_move, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 	}
-	sc_home = cheaper(t1, t2, "|\b^");
+	sc_home = estrdup(cheaper(t1, t2, "|\b^"));
 
 	/*
 	 * Choose between using "ll" and "cm"  ("lower left" and "cursor move")
@@ -412,10 +412,9 @@ get_term(void)
 	if (*sc_move == '\0') {
 		t2 = "";
 	} else {
-		t2 = estrdup(tparm(sc_move, sc_height-1,
-		    0, 0, 0, 0, 0, 0, 0, 0));
+		t2 = tparm(sc_move, sc_height-1, 0, 0, 0, 0, 0, 0, 0, 0);
 	}
-	sc_lower_left = cheaper(t1, t2, "\r");
+	sc_lower_left = estrdup(cheaper(t1, t2, "\r"));
 
 	/*
 	 * Get carriage return string.
