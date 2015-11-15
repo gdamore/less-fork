@@ -245,7 +245,7 @@ checkfmt(const char *s)
 
 	if (*s == '*') {		/* skip leading attribute if there */
 		s++;
-		if (strchr("dksu", *s) == NULL) {
+		if (*s == '\0' || strchr("dksu", *s) == NULL) {
 			return (-1);
 		}
 		s++;
@@ -265,7 +265,8 @@ checkfmt(const char *s)
 		if (seen) {
 			return (-1);	/* 2nd % format item! */
 		}
-		while (strchr(" '+-0#", *s) != NULL) {	/* skip flags */
+		/* skip flags */
+		while (*s != '\0' && strchr(" '+-0#", *s) != NULL) {
 			s++;
 		}
 		while (isdigit(*s)) {			/* skip width */
@@ -286,7 +287,7 @@ checkfmt(const char *s)
 				s++;
 		}
 
-		if (strchr("cCdiouxX", *s) == NULL) {
+		if (*s == '\0' || strchr("cCdiouxX", *s) == NULL) {
 			/* bad or evil format character (%s, %n, etc.) */
 			return (-1);
 		}
