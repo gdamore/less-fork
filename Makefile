@@ -101,7 +101,7 @@ DEFS 	=	-D SYSNAME=\"$(SYSNAME)\" \
 		-D VERSION=\"$(PATCHID)\" \
 		-D SYSDIR=\"/etc\"
 
-OBJS=		$(less_OBJS) $(lesskey_OBJS) $(compat_OBJS)
+OBJS=		$(less_OBJS) $(lesskey_OBJS) $(compat_OBJS) $(mkhelp_OBJS)
 
 OPT_yes =	$(OPT_$(STD))
 DBG_yes =	$(DBG_$(STD))
