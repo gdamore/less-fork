@@ -208,7 +208,6 @@ longish(void)
 		loopcount = 0;
 		if (time(NULL) >= startime + LONGTIME) {
 			ierror("Calculating line numbers", NULL_PARG);
-			longloopmessage();
 			loopcount = -1;
 		}
 	}
