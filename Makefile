@@ -92,7 +92,7 @@ mkhelp_OBJS =	mkhelp.o
 mkhelp_SRCS =	$(mkhelp_OBJS:%.o=%.c)
 
 SYSNAME	=	gdamore
-RELEASE =	0.9.49
+RELEASE =	1.0.0
 PATCHID =	unbundled
 
 INCS	=	-I .
