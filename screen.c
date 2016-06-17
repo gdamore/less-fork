@@ -273,6 +273,7 @@ get_term(void)
 {
 	char *t1, *t2;
 	char *term;
+	int errret;
 
 	/*
 	 * Find out what kind of terminal this is.
@@ -281,8 +282,13 @@ get_term(void)
 		term = DEFAULT_TERM;
 	hardcopy = 0;
 
-	if (setupterm(term, 1, NULL) < 0) {
-		hardcopy = 1;
+	if (setupterm(term, 1, &errret) < 0) {
+		if (errret == 1) {
+			hardcopy = 1;
+		} else {
+			fprintf(stderr, "%s: unknown terminal type\n", term);
+			exit(1);
+		}
 	}
 	if (hard_copy == 1)
 		hardcopy = 1;
