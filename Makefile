@@ -23,10 +23,12 @@ PROGS=		less lesskey more mkhelp
 
 # STD can be default, SUSv2, SUSv3, SUSv4, MACOS, or ILLUMOS
 # default works for most platforms (but not illumos!)
-STD =
+STD =		default
 
-DEBUG =		yes
-OPTIMIZE =	yes
+CFLAGS =	-I. -DSYSDIR= -DSYSNAME= -DRELEASE= -DVERSION=
+
+DEBUG =		no
+OPTIMIZE =	no
 
 LF64 =		-D _FILE_OFFSET_BITS=64
 
