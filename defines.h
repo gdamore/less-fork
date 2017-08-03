@@ -14,7 +14,9 @@
  * (in the HOME directory).
  */
 #define	LESSKEYFILE		".less"
-#define	LESSKEYFILE_SYS		SYSDIR "/sysless"
+#ifndef LESSKEYFILE_SYS
+#define	LESSKEYFILE_SYS		"/etc/sysless"
+#endif
 #define	DEF_LESSKEYINFILE	".lesskey"
 #define	LESSHISTFILE		".lesshst"
 #define	TGETENT_OK  1		/* "OK" from curses.h */

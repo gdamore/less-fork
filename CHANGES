@@ -99,6 +99,8 @@ changes in the following way:
 
  * various minor bug fixes, from various parties.
 
+ * added CMAKE support
+
 ---- >> TODO << ----
 
  1. it seems silly that less reinvents getopt, consider rewhacking this to

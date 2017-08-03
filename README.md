@@ -60,7 +60,15 @@ oriented around safety and hardening of the code.
 
 ## Building
 
-To build it, type `make STD=<x>` where `x` is one of:
+If you have CMake, then that is probably the best option:
+
+  % mkdir build
+  % cd build
+  % cmake ..
+  % make
+
+Alternatively, you can use the Makefile where we have some default
+targets based on build type.  Use `make STD=<x>` where `x` is one of:
 
 * `ILLUMOS`
 * `MACOS`
@@ -68,12 +76,10 @@ To build it, type `make STD=<x>` where `x` is one of:
 * `SUSv3`
 * `SUSv2`
 
-Note that **SUSv1** and earlier are not supported.  These older systems are
-missing the vsnprintf function.
-
 See the Makefile for more details.  There is a `STD=default` option you can
-try if your platform isn't listed.
+try if your platform isn't listed.  (CMake is more likely to yield a positive
+result in this case, however.)
 
 Enjoy!
 
-	- Garrett D'Amore <garrett@damore.org>, Nov. 6, 2015
+	- Garrett D'Amore <garrett@damore.org>, Aug. 3, 2017

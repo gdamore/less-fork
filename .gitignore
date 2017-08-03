@@ -1,0 +1,9 @@
+# compile outputs
+*.o
+less
+lesskey
+mkhelp
+more
+# generated sources
+help.c
+morehelp.c

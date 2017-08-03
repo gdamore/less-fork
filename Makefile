@@ -92,14 +92,17 @@ mkhelp_OBJS =	mkhelp.o
 mkhelp_SRCS =	$(mkhelp_OBJS:%.o=%.c)
 
 SYSNAME	=	gdamore
-RELEASE =	1.0.0
+RELEASE =	1.0.1
 PATCHID =	unbundled
 
 INCS	=	-I .
 DEFS 	=	-D SYSNAME=\"$(SYSNAME)\" \
 		-D RELEASE=\"$(RELEASE)\" \
-		-D VERSION=\"$(PATCHID)\" \
-		-D SYSDIR=\"/etc\"
+		-D VERSION=\"$(PATCHID)\"
+
+# define LESSKEYFILE_SYS to change the default location of the system-wide
+# keyfile that less loads on default.
+# DEFS += -D LESSKEYFILE_SYS=\"/etc/sysless\"
 
 OBJS=		$(less_OBJS) $(lesskey_OBJS) $(compat_OBJS) $(mkhelp_OBJS)
 
