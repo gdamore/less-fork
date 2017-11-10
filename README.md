@@ -60,12 +60,13 @@ oriented around safety and hardening of the code.
 
 ## Building
 
-If you have CMake, then that is probably the best option:
+If you have [CMake](http://www.cmake.org) 3.1 or newer, then that is
+probably the best option:
 
-  % mkdir build
-  % cd build
-  % cmake ..
-  % make
+    $ mkdir build
+    $ cd build
+    $ cmake ..
+    $ make
 
 Alternatively, you can use the Makefile where we have some default
 targets based on build type.  Use `make STD=<x>` where `x` is one of:
