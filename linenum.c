@@ -199,14 +199,45 @@ add_lnum(LINENUM linenum, off_t pos)
 }
 
 static int loopcount;
-static time_t startime;
+#ifdef CLOCK_MONOTONIC
+static struct timespec timeout;
+#else
+static time_t timeout;
+#endif
+
+static void
+timeout_set(int seconds)
+{
+#ifdef CLOCK_MONOTONIC
+	clock_gettime(CLOCK_MONOTONIC, &timeout);
+	timeout.tv_sec += seconds;
+#else
+	timeout = time(NULL) + seconds;
+#endif
+}
+
+static int
+timeout_elapsed(void)
+{
+#ifdef CLOCK_MONOTONIC
+	struct timespec now;
+
+	clock_gettime(CLOCK_MONOTONIC, &now);
+	if (now.tv_sec == timeout.tv_sec)
+		return now.tv_nsec >= timeout.tv_nsec;
+	else
+		return now.tv_sec >= timeout.tv_sec;
+#else
+	return time(NULL) >= timeout;
+#endif
+}
 
 static void
 longish(void)
 {
 	if (loopcount >= 0 && ++loopcount > 100) {
 		loopcount = 0;
-		if (time(NULL) >= startime + LONGTIME) {
+		if (timeout_elapsed()) {
 			ierror("Calculating line numbers", NULL_PARG);
 			loopcount = -1;
 		}
@@ -276,7 +307,7 @@ find_linenum(off_t pos)
 	 * The decision is based on which way involves
 	 * traversing fewer bytes in the file.
 	 */
-	startime = time(NULL);
+	timeout_set(LONGTIME);
 	if (p == &anchor || pos - p->prev->pos < p->pos - pos) {
 		/*
 		 * Go forward.
